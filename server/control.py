@@ -42,7 +42,7 @@ def enqueue(root: pathlib.Path, action: str, *, project_id=None) -> str:
     inbox = root / "commands"
     inbox.mkdir(mode=0o700, parents=True, exist_ok=True)
     ticket = uuid.uuid4().hex
-    write_json(inbox / (ticket + ".json"), {"id": ticket, "action": action} | ({"projectId":project_id} if project_id is not None else {}))
+    write_json(inbox / (ticket + ".json"), {"id": ticket, "action": action, "createdAtNs": time.time_ns()} | ({"projectId":project_id} if project_id is not None else {}))
     return ticket
 
 
@@ -50,7 +50,8 @@ def pending(root: pathlib.Path):
     inbox = root / "commands"
     if not inbox.is_dir():
         return
-    for path in sorted(inbox.glob("*.json"), key=lambda p: p.stat().st_mtime_ns)[:16]:
+    requests = []
+    for path in inbox.glob("*.json"):
         # Each request is independent; concurrent clients cannot overwrite one
         # another. The payload is an enum, never a command, filename or URL.
         if not re.fullmatch(r"[0-9a-f]{32}", path.stem) or path.is_symlink():
@@ -63,10 +64,20 @@ def pending(root: pathlib.Path):
                 continue
             if value["action"] == "exercise-project" and not valid_project_id(value.get("projectId")):
                 continue
-            path.unlink()
-            yield value
+            stamp = value.get("createdAtNs")
+            # Legacy requests retain their filesystem ordering. New requests
+            # carry an explicit timestamp: rapid writes can share one FS tick.
+            if not isinstance(stamp, int) or isinstance(stamp, bool):
+                stamp = path.stat().st_mtime_ns
+            requests.append((stamp, path.name, path, value))
         except (OSError, ValueError, AttributeError):
             continue
+    for _, _, path, value in sorted(requests)[:16]:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            continue
+        yield value
 
 
 def latest_release(current: pathlib.Path) -> pathlib.Path:

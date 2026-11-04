@@ -17,6 +17,18 @@ from test_state import snapshot
 
 
 class LocalizationTests(unittest.TestCase):
+    def test_same_size_same_mtime_locale_edit_is_not_missed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'config.toml'
+            path.write_text('[desktop]\nlocaleOverride="zh-CN"\n')
+            os.utime(path, ns=(100, 100))
+            source = DesktopLanguage(path)
+            path.write_text('[desktop]\nlocaleOverride="en-US"\n')
+            os.utime(path, ns=(100, 100))
+            self.assertTrue(source.poll())
+            self.assertEqual(source.language, 'en')
+            self.assertFalse(source.poll())
+
     def test_explicit_simplified_only_and_no_system_language_fallback(self):
         for value in ('zh-CN', 'zh-Hans'):
             self.assertEqual(ui_language(value), 'zh-CN')

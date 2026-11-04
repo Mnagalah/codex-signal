@@ -37,7 +37,7 @@ else:
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 RESUME_SNAPSHOT_WAIT = 5.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 

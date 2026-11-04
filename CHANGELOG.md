@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 — cross-platform ordering and locale fixes
+
+- Preserve rapid plugin command order even when the filesystem gives several request files the same timestamp; older requests remain readable.
+- Detect same-length locale edits and atomic config replacements within one filesystem timestamp tick, without retaining other configuration values.
+- Make control/deep-link tests independent of the developer machine locale and platform; add coarse-timestamp regressions.
+- Retain IDs, historical numbering, acknowledgements and existing installation paths.
+
 ## 0.2.0 — distribution candidate and Ubuntu beta
 
 - Adopted Codex Signal and MIT. Lightweight packages require user-managed Python 3.10+; no Python runtime bundled. Pure-Python Tomli is included for Python 3.10 without a pip step.
