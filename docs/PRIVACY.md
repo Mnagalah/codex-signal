@@ -1,0 +1,11 @@
+# Privacy and local data
+
+Signal connects to the current desktop's local, version-bound IPC stream. The stream can contain transcript payloads. Signal immediately reduces snapshots/patches to the metadata and lifecycle fields it needs, discards bodies, and does not persist or log the transcript. It is inaccurate to say it never receives text payloads.
+
+Retained fields include original chat/host IDs, project association and icon, titles, stage, timing, local slot history, and local acknowledgements. Mac settings/state stay under `~/Library/Application Support/CodexMenuStatus/`. Linux settings use `$XDG_CONFIG_HOME/codex-signal/` (default `~/.config/codex-signal/`); IDs/slots/acknowledgements use `$XDG_STATE_HOME/codex-signal/` (default `~/.local/state/codex-signal/`). Its transient same-user UI socket is `$XDG_RUNTIME_DIR/codex-signal/ui.sock`, inside a private directory with a mode-0600 socket; it is not a network port. The backend owns business state; GNOME receives only the metadata projection and fixed UI actions. This directory is user data, never a release asset. The desktop's explicit locale setting is read to choose Chinese or English; unrelated configuration values are not exported.
+
+No analytics, advertising, external status service, API key or extra inference call is used by this plugin. Following/unfollowing applies only to Signal's observer. It never approves commands, resumes tasks, sends messages or writes Codex read receipts. A user click opens the original Codex chat; Codex may then apply its own normal read behavior. Signal's local checkmark only acknowledges its own reminder.
+
+Capture diagnostics are off in public `mcp.json`. A developer who deliberately enables `CODEX_MENU_STATUS_CAPTURE=1` can capture Signal's own views and metadata locally; titles and project names in those files are private. Do not attach raw `status.json`, `slots.json`, screen captures, socket payloads, config files, account data or session exports to public issues. Use fictional fixtures and report only versions, expected behavior and the minimal redacted error.
+
+Open-source uploads are made from a whitelist export, not from the development directory or user data. Private evidence stays outside this repository. The HTML demo uses fictional names. See the maintainer release checklist before publishing any screenshots or artifacts.

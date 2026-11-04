@@ -1,0 +1,72 @@
+.signal-host { -minimum-hpadding:0px; -natural-hpadding:0px; padding:0; }
+.signal-group,.signal-lane { spacing:4px; }
+.signal-capsule { background:#000; border-radius:11px; height:22px; padding:0 3px 0 6px; spacing:3px; }
+.signal-global { min-width:40px; height:22px; border-radius:11px; padding:0; }
+.signal-project-trigger > StBoxLayout { spacing:5px; }
+.signal-action { padding:0; border:0; border-radius:7px; color:white; }
+.signal-action:hover { background-color:rgba(255,255,255,.10); }
+.signal-action:active { background-color:rgba(255,255,255,.18); }
+.signal-action:focus { box-shadow:inset 0 0 0 1px #dce7ff; }
+.signal-menu-name { max-width:116px; font-size:12px; font-weight:600; }
+.signal-emoji { font-size:14px; text-align:center; padding:0; }
+.signal-badges { spacing:3px; }
+.signal-badge { width:18px; height:18px; border-radius:10px; padding:0; text-align:center; font-size:11px; font-weight:600; }
+.signal-row-badge { width:20px; height:20px; border-radius:11px; }
+.signal-badge-button { padding:0; }
+.signal-popup { -arrow-background-color:#000; -arrow-border-color:#272727; -arrow-border-width:1px; -arrow-border-radius:14px; -arrow-rise:8px; }
+.signal-popup-content { background:#000; color:#fff; border-radius:14px; padding:8px; spacing:0; }
+.signal-popup-content .popup-menu-item { padding:0; spacing:0; }
+.signal-header { min-height:44px; spacing:8px; }
+.signal-header-copy { spacing:1px; }
+.signal-header-title,.signal-project-title { font-size:13px; font-weight:600; }
+.signal-source { font-size:10px; color:#aaa; }
+.signal-scroll { min-width:280px; }
+.signal-body { spacing:0; }
+.signal-project-row { height:44px; spacing:12px; padding:0 6px; }
+.signal-chat-row { height:56px; padding:0 4px 0 14px; spacing:4px; }
+.signal-row-open { spacing:10px; padding:0; }
+.signal-row-copy { spacing:2px; }
+.signal-chat-title { font-size:13px; font-weight:600; }
+.signal-detail { font-size:12px; color:#aaa; }
+.signal-control { min-width:28px; height:28px; }
+.signal-empty { padding:16px 4px; color:#aaa; font-size:12px; }
+.signal-section { color:#aaa; font-size:11px; padding:8px 4px; }
+.signal-setting-row { height:40px; spacing:8px; padding:0 4px; }
+.signal-setting-title { font-size:12px; }
+.signal-switch-track { width:36px; height:20px; border-radius:10px; }
+.signal-switch-knob { width:16px; height:16px; margin:2px; border-radius:8px; background:#eee; }
+.signal-notice { background:#000; color:#fff; border:1px solid #292929; border-radius:14px; padding:12px; spacing:8px; }
+.signal-notice-body { spacing:10px; }
+.signal-notice-body > StBoxLayout { spacing:3px; }
+.signal-close { font-size:18px; color:#bbb; }
+
+.signal-notice-line { spacing:8px; }
+.signal-notice-progress { height:2px; background:#666; border-radius:1px; margin-top:8px; }
+
+/* Generated from the HTML contract. Do not edit these metric overrides. */
+.signal-group,.signal-lane { spacing:4px; }
+.signal-capsule,.signal-global { height:22px; border-radius:11.0px; }
+.signal-global { min-width:40px; }
+.signal-menu-name { max-width:116px; font-size:12px; }
+.signal-emoji { font-size:14px; }
+.signal-badges { spacing:3px; }
+.signal-badge { width:18px; height:18px; border-radius:9.0px; }
+.signal-row-badge { width:20px; height:20px; border-radius:10.0px; }
+.signal-popup-content { padding:8px; border-radius:14px; }
+.signal-header { min-height:44px; padding:0px 8px 0px 8px; spacing:8px; }
+.signal-header-title,.signal-project-title { font-size:13px; }
+.signal-source { font-size:10px; }
+.signal-scroll { min-width:0; }
+.signal-project-row { height:44px; padding:6px 8px 6px 8px; spacing:12px; }
+.signal-chat-row { height:56px; padding:0; }
+.signal-row-open { padding:6px 8px 6px 8px; spacing:12px; }
+.signal-grouped .signal-row-open { padding:6px 8px 6px 24px; }
+.signal-row-copy { spacing:2px; }
+.signal-chat-title { font-size:13px; }
+.signal-detail { font-size:12px; }
+.signal-control { min-width:28px; height:28px; }
+.signal-section { font-size:11px; }
+.signal-setting-row { height:40px; padding:6px 8px 6px 8px; spacing:12px; }
+.signal-switch-track { width:36px; height:20px; border-radius:10.0px; }
+.signal-switch-knob { width:16px; height:16px; border-radius:8.0px; }
+.signal-notice { border-radius:16px; }
