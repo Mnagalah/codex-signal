@@ -2,7 +2,7 @@
 
 | Target | Implemented | Evidence / gap |
 | --- | --- | --- |
-| macOS Apple Silicon | Native renderer + shared backend | 0.2.1 native build, automated suites and isolated package installation; clean-download trust remains unverified |
+| macOS Apple Silicon | Native renderer + shared backend | 0.2.2 native build, automated suites and isolated package installation; clean-download trust remains unverified |
 | macOS 14+ | Deployment target | Not a claim that every older OS build was exercised |
 | Intel Mac | Source can be built separately | No Intel asset or runtime acceptance in this release |
 | Ubuntu 22.04, GNOME Shell 42 | Complete Python bridge + GJS top-panel/popup/settings/notice companion | Beta code and synthetic tests; native GNOME, desktop IPC/read state and installation need tester validation |

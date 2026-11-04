@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 — read-state synchronization
+
+- An explicit desktop read event immediately clears a known finished turn. A stale unread snapshot cannot restore that reminder; a later turn still notifies normally. Reads during running/unknown state do not acknowledge a future completion. Local and remote identities remain separate.
+
 ## 0.2.1 — cross-platform ordering and locale fixes
 
 - Preserve rapid plugin command order even when the filesystem gives several request files the same timestamp; older requests remain readable.

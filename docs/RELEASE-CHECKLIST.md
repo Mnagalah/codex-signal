@@ -12,7 +12,7 @@
 - [x] Allowlist export, private path/live-ID checks, no local records/evidence or diagnostic capture enabled in assets.
 - [x] English/Chinese READMEs, install/update/removal/recovery, AI install prompt, compatibility, MIT/Tomli notices.
 - [x] Shared Python regression/platform/bridge tests and deterministic Linux model/UI harness run locally.
-- [x] Optimized Mac arm64 helper built; native suite run locally. 94 Python tests, 74 native tests and 13 Linux synthetic checks passed for this candidate.
+- [x] Optimized Mac arm64 helper built; native suite run locally. 100 Python tests, 74 native tests and 13 Linux synthetic checks passed for this candidate.
 - [ ] Clean Mac download/quarantine trust check; current helper has only ad-hoc signing, not Developer ID notarization.
 - [ ] Ubuntu 22.04 real GNOME installation, exact desktop protocol/read state, links, high-DPI/multi-screen, lock/exit/disable acceptance. Beta may be distributed **for these tests**, with gaps explicit.
 - [ ] Linux peer credential path verified on Linux itself (Mac tests inject credentials and do not prove SO_PEERCRED behavior).

@@ -37,7 +37,7 @@ else:
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 RESUME_SNAPSHOT_WAIT = 5.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
@@ -251,8 +251,16 @@ class Plugin:
                     if params["hasUnreadTurn"]:
                         state.metadata["hasUnreadTurn"] = True
                     else:
-                        # Read state is thread-level, not turn-level. Reconcile
-                        # with the latest turn before dismissing a completion.
+                        # Opening an already-finished chat is an explicit read
+                        # edge. A repeated follower snapshot can still carry
+                        # unread=True, so acknowledge only this known turn.
+                        # Reads during a running/unknown turn must not silence
+                        # a later completion.
+                        turn = state.latest_turn
+                        if (state.valid and state.phase() in ("completed", "failed", "stopped")
+                                and (turn.get("turnId") or turn.get("id"))):
+                            self.registry.mark_seen(state)
+                            state.metadata["hasUnreadTurn"] = False
                         self.refresh_pending = True
             else:
                 self.refresh_pending = True
