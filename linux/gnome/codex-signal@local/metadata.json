@@ -1,1 +1,13 @@
-{"uuid":"codex-signal@local","name":"Codex Signal Beta","description":"Project chat states from the Codex Signal desktop plugin. Ubuntu 22.04 / GNOME 42 beta.","shell-version":["42"],"version":200,"settings-schema":"org.gnome.shell.extensions.codex-signal","session-modes":["user"]}
+{
+  "uuid": "codex-signal@local",
+  "name": "Codex Signal Beta",
+  "description": "Project chat states from the Codex Signal desktop plugin. Ubuntu 22.04 / GNOME 42 beta.",
+  "shell-version": [
+    "42"
+  ],
+  "version": 201,
+  "settings-schema": "org.gnome.shell.extensions.codex-signal",
+  "session-modes": [
+    "user"
+  ]
+}

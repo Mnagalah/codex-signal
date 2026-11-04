@@ -41,9 +41,9 @@ class DesktopLanguage:
     def poll(self):
         try:
             stat = self.path.stat()
-            signature = (stat.st_mtime_ns, stat.st_size)
-            if signature == self.signature:
-                return False
+            signature = (stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size)
+            # A same-length edit or atomic replacement can share a filesystem
+            # timestamp. Read the selected value instead of trusting mtime.
             # Only the explicit language value survives this read. No config
             # contents or other settings are exposed, logged, or written.
             raw = tomllib.loads(self.path.read_text())

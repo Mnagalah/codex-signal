@@ -15,6 +15,7 @@ SERVER = pathlib.Path(__file__).resolve().parents[1] / "server"
 sys.path.insert(0, str(SERVER))
 from control import enqueue, latest_release, pending, write_json
 from main import Plugin, VERSION, load_plugin_class
+from localization import DesktopLanguage
 
 
 class ControlTests(unittest.TestCase):
@@ -48,6 +49,9 @@ class ControlTests(unittest.TestCase):
     def test_switch_persists_without_clearing_slots_or_requesting_chat_operations(self):
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {"CODEX_MENU_STATUS_DATA": tmp}):
             plugin = Plugin(argparse.Namespace(no_ui=True, seconds=0))
+            locale = pathlib.Path(tmp) / "codex.toml"
+            locale.write_text('[desktop]\nlocaleOverride="zh-CN"\n')
+            plugin.language = DesktopLanguage(locale)
             plugin.primary = True
             plugin.control("disable")
             self.assertFalse(plugin.enabled)
@@ -59,6 +63,16 @@ class ControlTests(unittest.TestCase):
             self.assertEqual((pathlib.Path(tmp) / "slots.json").read_text(), saved)
             self.assertEqual(json.loads((pathlib.Path(tmp) / "settings.json").read_text()), {"enabled": True})
             plugin.lock.close()
+
+    def test_explicit_request_order_survives_identical_filesystem_timestamps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            with patch('control.time.time_ns', side_effect=[10, 20]):
+                first = enqueue(root, 'disable')
+                second = enqueue(root, 'enable')
+            for p in (root / 'commands').glob('*.json'):
+                os.utime(p, ns=(100, 100))
+            self.assertEqual([v['id'] for v in pending(root)], [first, second])
 
     def test_payload_import_uses_an_isolated_namespace_and_keeps_same_transport_queue(self):
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {"CODEX_MENU_STATUS_DATA": tmp}):

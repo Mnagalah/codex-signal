@@ -117,7 +117,7 @@ class RemoteTests(unittest.TestCase):
             message('thread-read-state-changed',{'hasUnreadTurn':False},3)
             self.assertTrue(p.refresh_pending)
             p.refresh_tracked();self.assertEqual(ipc.calls[-1],(HOST,TID,True))
-            with patch('main.subprocess.Popen') as opened:
+            with patch('main.sys.platform','darwin'), patch('main.subprocess.Popen') as opened:
                 p.consume_ui({'event':'open','threadId':chat['id']})
                 url=opened.call_args.args[0][1]
                 self.assertEqual(parse_qs(urlparse(url).query)['hostId'],[HOST])
