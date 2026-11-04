@@ -1,0 +1,54 @@
+name: Validate plugin candidate
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shared-and-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Python 3.10 backend and synthetic Linux UI checks
+        run: |
+          python3 --version
+          python3 -m unittest discover -s tests -v
+          node tests/linux-ui.cjs
+          for f in linux/gnome/codex-signal@local/*.js; do node --check "$f"; done
+          python3 scripts/generate-linux.py --check
+          cp -R linux/gnome/codex-signal@local/schemas "$RUNNER_TEMP/signal-schemas"
+          glib-compile-schemas --strict --dry-run "$RUNNER_TEMP/signal-schemas"
+          python3 scripts/package.py --target ubuntu22.04-beta
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: codex-signal-ubuntu22.04-beta-candidate
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Shared grid, Python and native checks
+        run: |
+          python3 scripts/generate-layout.py --check
+          python3 scripts/generate-linux.py --check
+          python3 -m unittest discover -s tests -v
+          node tests/linux-ui.cjs
+          swift test --disable-sandbox --package-path native
+      - name: Build and package a local candidate
+        run: |
+          ./scripts/build-release.sh
+          python3 scripts/package.py --target macos
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: codex-signal-macos-candidate
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
+# Candidate-only workflows: no publishing, credentials, signing identity or tag writes.
+# These are automated/synthetic checks, not a real GNOME or clean-download acceptance.

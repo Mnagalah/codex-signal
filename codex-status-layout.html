@@ -1,0 +1,1981 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Codex 状态栏 · 网格布局基准</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='black'/%3E%3Ccircle cx='16' cy='16' r='10' fill='%232963e8'/%3E%3C/svg%3E">
+<script id="layout-contract" type="application/json">
+{
+  "version": 1,
+  "source": "codex-status-layout.html#layout-contract",
+  "metrics": {
+    "unit": 4,
+    "bar-h": 32,
+    "selection-h": 24,
+    "pill-h": 22,
+    "badge-menu": 18,
+    "badge-row": 20,
+    "icon-menu": 12,
+    "menu-font": 12,
+    "number-font": 11,
+    "number-multi-font": 10,
+    "number-row-font": 11,
+    "number-row-multi-font": 10,
+    "name-max": 116,
+    "slot-pad": 10,
+    "menu-gap": 2,
+    "badge-gap": 3,
+    "panel-w": 304,
+    "header-h": 44,
+    "row-h": 56,
+    "panel-pad": 8,
+    "safe-gap": 12,
+    "arrow-h": 8,
+    "arrow-half": 7,
+    "arrow-inset": 20,
+    "panel-anchor-gap": 0,
+    "list-top": 4,
+    "divider-inset": 8,
+    "empty-h": 72,
+    "panel-max-h": 450,
+    "control": 28,
+    "switch-w": 36,
+    "switch-h": 20,
+    "radius": 14,
+    "header-icon": 14,
+    "control-icon": 14,
+    "title-h": 18,
+    "detail-h": 16,
+    "source-h": 12,
+    "host-inset": 1,
+    "label-h": 16,
+    "header-font": 13,
+    "source-font": 10,
+    "title-font": 13,
+    "detail-font": 12,
+    "empty-font": 13,
+    "alert-row-h": 40,
+    "alert-dot": 10,
+    "settings-gap": 8,
+    "group-gap": 4,
+    "section-font": 11,
+    "project-control-h": 44
+  },
+  "fonts": {
+    "menu": {
+      "size": "menu-font",
+      "weight": 500,
+      "selector": ".menu-name"
+    },
+    "number": {
+      "size": "number-font",
+      "weight": 600,
+      "selector": ".badge .ink"
+    },
+    "header": {
+      "size": "header-font",
+      "weight": 600,
+      "selector": "h2.ink"
+    },
+    "source": {
+      "size": "source-font",
+      "weight": 400,
+      "selector": ".source.ink"
+    },
+    "title": {
+      "size": "title-font",
+      "weight": 500,
+      "selector": ".row-title.ink"
+    },
+    "detail": {
+      "size": "detail-font",
+      "weight": 400,
+      "selector": ".row-detail.ink"
+    },
+    "empty": {
+      "size": "empty-font",
+      "weight": 400,
+      "selector": ".empty"
+    },
+    "noticeProject": {
+      "size": "menu-font",
+      "weight": 500,
+      "selector": ".notice-project"
+    },
+    "noticeState": {
+      "size": "title-font",
+      "weight": 500,
+      "selector": ".notice-state"
+    },
+    "noticeTitle": {
+      "size": "detail-font",
+      "weight": 400,
+      "selector": ".notice-title"
+    },
+    "section": {
+      "size": "section-font",
+      "weight": 500,
+      "selector": ".settings-section-title"
+    }
+  },
+  "grids": {
+    "capsule": {
+      "selector": ".capsule",
+      "columns": [
+        "max-content",
+        "max-content"
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 4,
+      "rowGap": 0,
+      "padding": [
+        2,
+        2,
+        2,
+        7
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "project": {
+      "selector": ".project-button",
+      "columns": [
+        12,
+        "max-content"
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 5,
+      "rowGap": 0,
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "panel": {
+      "selector": ".panel-inner",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        44,
+        1,
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 0,
+      "rowGap": 0,
+      "padding": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "stretch"
+    },
+    "header": {
+      "selector": ".panel-header",
+      "columns": [
+        16,
+        "minmax(0,1fr)",
+        28,
+        36
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 8,
+      "rowGap": 0,
+      "padding": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "headerCopy": {
+      "selector": ".header-copy",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        18,
+        12
+      ],
+      "columnGap": 0,
+      "rowGap": 2,
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "row": {
+      "selector": ".chat-row",
+      "columns": [
+        "minmax(0,1fr)",
+        28
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 2,
+      "rowGap": 0,
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "rowOpen": {
+      "selector": ".row-open",
+      "columns": [
+        20,
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 12,
+      "rowGap": 0,
+      "padding": [
+        6,
+        8,
+        6,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "rowCopy": {
+      "selector": ".row-copy",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        18,
+        16
+      ],
+      "columnGap": 0,
+      "rowGap": 2,
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "notice": {
+      "selector": ".notice-content",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        24,
+        8,
+        39,
+        12,
+        2
+      ],
+      "padding": [
+        14,
+        14,
+        12,
+        14
+      ],
+      "columnGap": 0,
+      "rowGap": 0,
+      "alignItems": "center",
+      "alignContent": "center"
+    },
+    "noticeHeader": {
+      "selector": ".notice-header",
+      "columns": [
+        14,
+        "minmax(0,1fr)",
+        24
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "columnGap": 8,
+      "rowGap": 0,
+      "alignItems": "center",
+      "alignContent": "center"
+    },
+    "noticeBody": {
+      "selector": ".notice-body",
+      "columns": [
+        20,
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "columnGap": 12,
+      "rowGap": 0,
+      "alignItems": "center",
+      "alignContent": "center"
+    },
+    "noticeCopy": {
+      "selector": ".notice-copy",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        18,
+        18
+      ],
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "columnGap": 0,
+      "rowGap": 3,
+      "alignItems": "center",
+      "alignContent": "center"
+    },
+    "globalButton": {
+      "selector": ".global-trigger",
+      "columns": [
+        14
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 0,
+      "rowGap": 0,
+      "padding": [
+        4,
+        13,
+        4,
+        13
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "projectControl": {
+      "selector": ".project-control-row",
+      "columns": [
+        20,
+        "minmax(0,1fr)",
+        36
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 12,
+      "rowGap": 0,
+      "padding": [
+        6,
+        8,
+        6,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "statusLabel": {
+      "selector": ".status-trigger",
+      "columns": [
+        "max-content"
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 0,
+      "rowGap": 0,
+      "padding": [
+        2,
+        7,
+        2,
+        7
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "globalHeader": {
+      "selector": ".panel-header.is-global",
+      "columns": [
+        16,
+        "minmax(0,1fr)",
+        28,
+        28,
+        36
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 8,
+      "rowGap": 0,
+      "padding": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "alertRow": {
+      "selector": ".alert-setting-row",
+      "columns": [
+        20,
+        "minmax(0,1fr)",
+        36
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 12,
+      "rowGap": 0,
+      "padding": [
+        6,
+        8,
+        6,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "settingsSection": {
+      "selector": ".settings-section-title",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        24
+      ],
+      "columnGap": 0,
+      "rowGap": 0,
+      "padding": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "groupRowOpen": {
+      "selector": ".chat-row.is-grouped .row-open",
+      "columns": [
+        20,
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        "minmax(0,1fr)"
+      ],
+      "columnGap": 12,
+      "rowGap": 0,
+      "padding": [
+        6,
+        8,
+        6,
+        24
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    },
+    "projectHeadingCopy": {
+      "selector": ".project-name-only .row-copy",
+      "columns": [
+        "minmax(0,1fr)"
+      ],
+      "rows": [
+        18
+      ],
+      "columnGap": 0,
+      "rowGap": 0,
+      "padding": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "alignContent": "center",
+      "alignItems": "center"
+    }
+  },
+  "responsive": [
+    {
+      "maximumWidth": 520,
+      "metrics": {
+        "name-max": 76,
+        "slot-pad": 6
+      }
+    },
+    {
+      "maximumWidth": 380,
+      "metrics": {
+        "name-max": 42,
+        "slot-pad": 4,
+        "menu-gap": 1
+      }
+    }
+  ],
+  "popoverMotion": {
+    "response": 0.3,
+    "dampingRatio": 0.8,
+    "offset": 4,
+    "epsilon": 0.001,
+    "reducedResponse": 0.15
+  },
+  "notice": {
+    "width": 340,
+    "safeInset": 12,
+    "border": 1,
+    "radius": 16,
+    "holdSeconds": 6,
+    "motionSeconds": 0.16,
+    "offset": 4
+  },
+  "alertTypes": [
+    "running",
+    "approval",
+    "input",
+    "completed",
+    "failed",
+    "stopped"
+  ],
+  "settingsMotion": {
+    "out": 0.08,
+    "in": 0.12,
+    "icon": 0.16,
+    "resize": 0.22,
+    "offset": 4
+  },
+  "statusPriority": [
+    "failed",
+    "approval",
+    "input",
+    "running",
+    "completed",
+    "unknown",
+    "stopped"
+  ],
+  "menuMotion": {
+    "transition": 0.2
+  }
+}
+</script>
+<style>
+/* 唯一布局入口。结构位置由 Grid 决定，不对单个标题/图标补 top 值。 */
+:root {
+  --out: cubic-bezier(.23,1,.32,1);
+  --running:#2963e8; --approval:#ffab2b; --input:#874ad6;
+  --completed:#24a359; --failed:#d4333d; --stopped:#9ea3ad; --unknown:#9ea3ad;
+  --page:#17181b; --muted:#b2b3ba; --line:#ffffff19;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+  color:#f5f5f7; background:var(--page);
+  font-synthesis:none; -webkit-font-smoothing:antialiased;
+}
+* { box-sizing:border-box; }
+body { margin:0; padding:clamp(12px,2vw,32px); }
+button,input,select { font:inherit; }
+button { color:inherit; cursor:pointer; border:0; }
+button:disabled { opacity:.4; cursor:default; }
+button:focus-visible,select:focus-visible,input:focus-visible {
+  outline:2px solid #8aafff; outline-offset:3px;
+}
+button,select { -webkit-tap-highlight-color:transparent; }
+svg { display:block; flex:none; }
+.symbol { inline-size:100%; block-size:100%; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.page-head { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-block-end:20px; }
+h1 { font-size:20px; letter-spacing:-.025em; margin:0 0 5px; font-weight:650; }
+.page-head p { margin:0; color:var(--muted); font-size:13px; line-height:1.65; max-inline-size:70ch; }
+.toolbar,.controls { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.language-demo { display:flex; align-items:center; flex-wrap:wrap; gap:10px 16px; margin-block-end:16px; }
+.language-demo p { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+.language-label { color:#f5f5f7; }
+.small-button,select { min-block-size:34px; padding:7px 12px; border-radius:8px; background:#28292e; border:1px solid var(--line); font-size:12px; color:#e8e9ed; }
+.small-button:hover { background:#34353b; }
+.small-button:active { background:#41424a; }
+.small-button[aria-pressed="true"] { background:#304064; border-color:#7294d5; }
+label.control-label { display:grid; grid-template-columns:max-content minmax(0,1fr); align-items:center; gap:7px; font-size:12px; color:var(--muted); }
+label.control-label { min-inline-size:0; max-inline-size:100%; }
+.control-label select { min-inline-size:0; max-inline-size:100%; }
+.stage-shell { inline-size:100%; }
+.stage {
+  position:relative; inline-size:100%; max-inline-size:100%; min-inline-size:min(280px,100%);
+  block-size:clamp(340px,56vh,440px); overflow:hidden; isolation:isolate;
+  background:#0b0c0f; border:1px solid #ffffff1c; border-radius:12px;
+  container-type:inline-size; container-name:screen;
+}
+.menu-bar { block-size:var(--bar-h); display:grid; align-items:center; padding-inline:6px; background:#26272b; border-block-end:1px solid #ffffff08; }
+.menu-items { justify-self:end; display:flex; align-items:center; gap:var(--menu-gap); max-inline-size:100%; }
+.project-lane { display:flex; align-items:center; flex:0 1 auto; min-inline-size:0; gap:var(--menu-gap); overflow-x:auto; overflow-y:hidden; scrollbar-width:none; direction:rtl; flex-direction:row-reverse; }
+.project-lane::-webkit-scrollbar { display:none; }
+.project-lane:empty { display:none; }
+.slot { direction:ltr; }
+.slot { flex:none; block-size:var(--selection-h); padding-inline:var(--slot-pad); display:grid; place-items:center; border-radius:999px; position:relative; background:transparent; transition:background-color 140ms var(--out); }
+.slot.is-open { background:#414144; }
+.capsule {
+  block-size:var(--pill-h); max-inline-size:100%;
+  border-radius:999px; background:#000; min-inline-size:0;
+}
+.project-button { border-radius:5px; background:transparent; min-inline-size:0; block-size:100%; }
+.project-button .project-icon { inline-size:var(--icon-menu); block-size:var(--icon-menu); }
+.ink { display:grid; align-items:center; min-inline-size:0; min-block-size:0; block-size:var(--ink-h,var(--label-h)); line-height:1.25; }
+/* WebKit Text Box：以字体度量裁去行框空白，保持浏览器的跨语言基线。
+   混合中英文用 text，不把汉字按拉丁字母的 cap-height 裁切。 */
+.ink-label { display:block; min-inline-size:0; max-inline-size:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-box:trim-both text; }
+.baseline-marker { display:inline-block; inline-size:0; block-size:0; vertical-align:baseline; }
+.menu-name { inline-size:max-content; max-inline-size:var(--name-max); font-size:var(--menu-font); font-weight:500; --ink-h:var(--label-h); }
+.badge-list { display:grid; grid-auto-flow:column; grid-auto-columns:max-content; align-items:center; }
+.badge-list > .badge + .badge { margin-inline-start:var(--badge-gap); }
+.badge {
+  --badge:var(--badge-menu); display:grid; place-items:center; flex:none;
+  inline-size:var(--badge); block-size:var(--badge); padding:0; border-radius:50%;
+  background:var(--state-bg); color:var(--state-fg); position:relative;
+  transition:background-color 160ms var(--out),color 160ms var(--out),opacity 150ms var(--out);
+}
+.badge .ink { inline-size:var(--badge); block-size:var(--badge); font-size:var(--number-font); font-weight:600; font-variant-numeric:tabular-nums lining-nums; text-align:center; }
+.badge .ink-label { text-box:trim-both cap alphabetic; }
+.badge[data-state="unknown"]::after { content:""; position:absolute; inset:2px; border:1px dashed #17191d; border-radius:50%; pointer-events:none; }
+.badge:active { filter:brightness(.85); }
+.row-badge { --badge:var(--badge-row); --number-font:var(--number-row-font); pointer-events:none; }
+.stage-note { position:absolute; inset-inline:20px; inset-block-end:18px; color:#888b95; font-size:12px; line-height:1.7; pointer-events:none; }
+.stage-note strong { font-weight:500; color:#bec0c8; }
+/* 原生 Popover API 负责外部点击、Esc 与顶层；内部只有三行 Grid。 */
+.panel {
+  position:fixed; inset:auto; margin:0; padding:0; border:0; overflow:visible;
+  inline-size:var(--panel-w); color:white; background:#000; border-radius:var(--radius);
+  box-shadow:0 10px 32px #0007;
+  opacity:0; transform:translateY(-4px) scale(.98); transform-origin:var(--arrow-x,50%) top;
+  transition:opacity 180ms var(--out),transform 180ms var(--out),display 180ms allow-discrete,overlay 180ms allow-discrete;
+}
+.panel:popover-open { opacity:1; transform:none; }
+@starting-style { .panel:popover-open { opacity:0; transform:translateY(-4px) scale(.98); } }
+.panel.instant { transition-duration:0s; }
+.panel::before { content:""; position:absolute; inset-block-start:calc(-1 * var(--arrow-h)); inset-inline-start:calc(var(--arrow-x,50%) - var(--arrow-half)); inline-size:calc(var(--arrow-half) * 2); block-size:var(--arrow-h); background:#000; clip-path:polygon(50% 0,100% 100%,0 100%); }
+.panel-inner { max-block-size:var(--available-h,var(--panel-max-h)); border-radius:inherit; overflow:hidden; }
+.capsule.status-label { padding:0; display:block; }
+.status-label .project-icon,.status-label .badge-list { display:none; }
+.status-trigger { block-size:var(--pill-h); }
+.capsule.is-global { block-size:var(--pill-h); padding:0; display:block; background:var(--summary-bg,#000); transition:background-color 160ms var(--out),color 160ms var(--out); color:var(--summary-fg,#fff); }
+.is-global .global-trigger { inline-size:100%; block-size:100%; }
+.is-global .project-icon { inline-size:14px; block-size:14px; }
+.project-icon { display:grid; place-items:center; }
+.emoji-icon { font-size:14px; line-height:1; text-box:trim-both text; }
+.is-global .menu-name,.is-global .badge-list { display:none; }
+.is-global[data-summary="unknown"] { outline:1px dashed #17191d; outline-offset:-2px; }
+[hidden] { display:none!important; }
+.settings-button { position:relative; }
+.settings-glyph { position:absolute; inline-size:var(--control-icon); block-size:var(--control-icon); transition:opacity calc(var(--settings-icon-ms,160) * 1ms) var(--out),transform calc(var(--settings-icon-ms,160) * 1ms) var(--out); }
+.back-glyph { opacity:0; transform:translateX(3px); }
+.settings-button[data-settings="true"] .gear-glyph { opacity:0; transform:rotate(-30deg); }
+.settings-button[data-settings="true"] .back-glyph { opacity:1; transform:none; }
+.settings-section-title { margin:0; color:#8f919b; font-size:11px; font-weight:550; }
+.settings-section + .settings-section { margin-block-start:var(--settings-gap); }
+.alert-setting-row { min-block-size:var(--alert-row-h); }
+.alert-setting-row .row-title { min-inline-size:0; }
+.state-dot { inline-size:var(--alert-dot); block-size:var(--alert-dot); border-radius:50%; justify-self:center; background:var(--state-bg); }
+.group-heading .row-title { font-weight:600; }
+.group-heading + .group-heading { margin-block-start:var(--group-gap); }
+.project-control-row { min-block-size:var(--project-control-h); }
+.project-name-only .row-detail { display:none; }
+.emoji-picker { inline-size:36px; block-size:28px; padding:0; border:0; border-radius:6px; background:#ffffff14; color:white; text-align:center; font:18px "Apple Color Emoji",system-ui; }
+.project-control-row > .project-icon { inline-size:16px; block-size:16px; justify-self:center; }
+.project-control-row .row-copy { min-inline-size:0; }
+.panel-header { min-inline-size:0; }
+.panel-icon { inline-size:var(--header-icon); block-size:var(--header-icon); justify-self:center; }
+.header-copy { min-inline-size:0; }
+h2.ink { margin:0; --ink-h:var(--title-h); font-size:13px; font-weight:600; }
+.source.ink { --ink-h:var(--source-h); font-size:10px; color:#b8b9c1; }
+.icon-button { display:grid; place-items:center; inline-size:var(--control); block-size:var(--control); padding:calc((var(--control) - var(--control-icon)) / 2); background:transparent; border-radius:8px; color:#c2c3c9; }
+.icon-button:hover,.row-open:hover,.seen:hover { background:#ffffff17; }
+.icon-button:active,.row-open:active,.seen:active { background:#ffffff26; }
+.switch { display:grid; place-items:center; inline-size:var(--switch-w); block-size:var(--control); border-radius:8px; background:transparent; padding:0; }
+.switch-track { inline-size:var(--switch-w); block-size:var(--switch-h); padding:2px; display:grid; grid-template-columns:1fr 1fr; align-items:center; background:#414249; border-radius:999px; transition:background-color 160ms var(--out); }
+.switch-knob { inline-size:16px; block-size:16px; background:#f2f3f5; border-radius:50%; box-shadow:0 1px 2px #0004; transform:translateX(0); transition:transform 160ms var(--out); }
+.switch[aria-checked="true"] .switch-track { background:#146fe8; }
+.switch[aria-checked="true"] .switch-knob { transform:translateX(16px); }
+.divider { block-size:1px; margin-inline:var(--divider-inset); background:#ffffff1c; }
+.chat-list { min-block-size:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:#55565f #000; padding-block-start:var(--list-top); }
+.chat-row { min-block-size:var(--row-h); }
+.row-open { min-inline-size:0; block-size:var(--row-h); border-radius:9px; background:transparent; text-align:start; }
+.row-copy { min-inline-size:0; }
+.row-title.ink { --ink-h:var(--title-h); font-size:13px; font-weight:500; }
+.row-detail.ink { --ink-h:var(--detail-h); font-size:12px; color:#b5b6be; }
+.seen { display:grid; place-items:center; inline-size:var(--control); block-size:var(--control); padding:calc((var(--control) - var(--control-icon)) / 2); background:transparent; border-radius:8px; }
+.seen-placeholder { inline-size:var(--control); block-size:var(--control); }
+.empty { display:grid; place-items:center; min-block-size:var(--empty-h); padding:16px; color:#b5b6be; font-size:13px; text-align:center; }
+.demo-controls { display:grid; gap:12px; padding-block:18px; }
+.controls-title { font-size:12px; color:#aaadb7; margin:0; }
+.controls .selected { color:#e1e2e7; }
+.event-log { min-block-size:20px; margin:0; font-size:12px; line-height:1.7; color:#bfc1cb; }
+.audit-result { font-size:12px; line-height:1.7; margin:0; color:#c9cbd4; }
+.audit-result[data-ok="true"] { color:#6edc9b; }
+.audit-result[data-ok="false"] { color:#ff9d99; }
+.spec { max-inline-size:900px; border-block-start:1px solid var(--line); padding-block-start:16px; }
+summary { font-size:13px; cursor:pointer; color:#dadbe2; }
+.spec p { max-inline-size:72ch; color:#b2b4bf; font-size:12px; line-height:1.8; }
+.spec table { border-collapse:collapse; font-size:12px; max-inline-size:100%; inline-size:620px; margin-block:14px; }
+.spec th,.spec td { text-align:start; padding:9px 12px 9px 0; border-block-end:1px solid #ffffff10; vertical-align:top; }
+.spec th { color:#f0f0f3; font-weight:550; }
+.spec td { color:#b7b9c3; }
+.spec a { color:#9bbaff; text-underline-offset:3px; }
+code { font-family:ui-monospace,SFMono-Regular,monospace; font-size:11px; }
+/* 仅在诊断开关打开时绘制网格，不参与布局、不改变任何占位。 */
+.stage[data-grid="true"] { background-image:linear-gradient(#76dae309 1px,transparent 1px),linear-gradient(90deg,#76dae309 1px,transparent 1px); background-size:4px 4px; }
+.stage[data-grid="true"] .slot::after { content:""; pointer-events:none; position:absolute; inset-inline:0; inset-block-start:50%; border-block-start:1px dashed #7bdceab3; }
+.stage[data-grid="true"] .capsule,.stage[data-grid="true"] .project-icon,.stage[data-grid="true"] .menu-name,.stage[data-grid="true"] .badge { outline:1px solid #75dbea70; }
+.panel[data-grid="true"] .panel-header > *,.panel[data-grid="true"] .row-open > * { outline:1px solid #75dbea70; }
+.panel[data-grid="true"] .panel-header { background-image:linear-gradient(transparent calc(50% - .5px),#75dbea99 calc(50% - .5px),#75dbea99 calc(50% + .5px),transparent calc(50% + .5px)); }
+@media (max-width:600px) {
+  body { padding:12px; }
+  .page-head { gap:12px; margin-block-end:14px; }
+  h1 { font-size:18px; }
+  .toolbar { inline-size:100%; }
+  .toolbar > * { flex:1; }
+  .stage { block-size:360px; }
+  .controls { gap:7px; }
+  .controls label.control-label { flex:1 1 160px; }
+  .controls select { inline-size:100%; min-inline-size:0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .panel,.panel:popover-open { transform:none; }
+  .switch-knob { transition:none; }
+  .panel,.badge,.slot,.switch-track { transition-duration:100ms; }
+}
+html[data-keyboard="true"] :is(.panel,.badge,.slot,.switch-track,.switch-knob,.settings-glyph) { transition-duration:0s; }
+
+/* The status notice is a prototype-only, non-modal top-layer surface. */
+.status-notice {
+  --notice-duration:160ms;
+  position:fixed; inset:auto; margin:0; padding:0;
+  inline-size:340px; max-inline-size:calc(100vw - 24px); border-radius:16px;
+  border:1px solid #ffffff26; background:#050505; color:white;
+  box-shadow:0 12px 32px #0006; overflow:hidden;
+  opacity:0; transform:translateY(-4px);
+  transition:opacity var(--notice-duration) var(--out),transform var(--notice-duration) var(--out);
+}
+.status-notice[data-open="true"] { opacity:1; transform:none; }
+.notice-activate { position:absolute; inset:0; inline-size:100%; block-size:100%; border:0; border-radius:inherit; background:transparent; cursor:pointer; z-index:1; }
+.notice-activate:hover { background:transparent; }
+.notice-activate:focus-visible { outline:2px solid #fff8; outline-offset:-2px; }
+.notice-content { pointer-events:none; }
+.notice-dismiss { position:relative; z-index:2; pointer-events:auto; }
+.notice-header { display:grid; grid-template-columns:14px minmax(0,1fr) 24px; gap:8px; align-items:center; }
+.notice-icon { inline-size:14px; block-size:14px; }
+.notice-project { font-size:12px; font-weight:550; min-inline-size:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.notice-dismiss { inline-size:24px; block-size:24px; padding:0; display:grid; place-items:center; border-radius:6px; font-size:18px; color:#aaa; background:transparent; }
+.notice-dismiss:hover { background:#ffffff17; color:white; }
+.notice-body { grid-row:3; display:grid; grid-template-columns:20px minmax(0,1fr); column-gap:12px; align-items:center; margin-block-start:0; }
+.notice-copy { display:grid; grid-template-rows:18px 18px; gap:3px; min-inline-size:0; }
+.notice-state { font-size:13px; font-weight:550; line-height:18px; }
+.notice-title { font-size:12px; line-height:18px; color:#b8b9c1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.notice-meter { grid-row:5; block-size:2px; margin-block-start:0; border-radius:2px; background:#ffffff15; overflow:hidden; }
+.notice-meter i { display:block; block-size:100%; background:#ffffff70; transform-origin:left center; }
+.notice-rule { margin:0; font-size:12px; line-height:1.7; color:var(--muted); }
+@media(prefers-reduced-motion:reduce){.settings-glyph{transform:none!important;transition-property:opacity}.status-notice{transform:none}.notice-meter i{opacity:.35}}
+</style>
+</head>
+<body>
+<header class="page-head">
+  <div><h1 data-i18n="heading">状态栏 · 双语布局演示</h1><p data-i18n="intro">仅切换界面语言，项目与对话名称保留 Codex 原文。这里是可离线打开的交互演示，不操作真实聊天。</p></div>
+  <div class="toolbar">
+    <button class="small-button" id="gridToggle" aria-pressed="false">显示网格</button>
+    <button class="small-button" id="auditButton" data-i18n="auditButton">检查对齐</button>
+    <button class="small-button" id="resetButton" data-i18n="resetButton">恢复示例</button>
+  </div>
+</header>
+<main>
+  <section class="language-demo" aria-label="语言规则演示" data-i18n-aria="languageSection">
+    <label class="control-label language-label"><span data-i18n="languageLabel">Codex 语言（演示）</span>
+      <select id="codexLanguage" aria-label="演示 Codex 语言选择" data-i18n-aria="languageSelect">
+        <option value="zh-CN">简体中文</option><option value="en">English</option><option value="zh-TW">繁體中文</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="auto" data-i18n="automatic">自动 / 系统语言</option>
+      </select>
+    </label>
+    <p data-i18n="languageRule">简体中文 → 中文界面；其他选择 → English。项目与对话名称不翻译。</p>
+  </section>
+  <div class="stage-shell">
+    <section class="stage" id="stage" aria-label="菜单栏与弹窗的响应式预览" data-i18n-aria="stageLabel" data-grid="false">
+      <div class="menu-bar"><div class="menu-items" id="menuItems" aria-label="项目状态栏" data-i18n-aria="menuLabel"></div></div>
+      <div class="stage-note"><strong id="viewportInfo"></strong><br><span data-i18n="stageNote">系统选中背景为布局示意。缩窄窗口可检查收纳，展开面板始终限制在预览安全区内。</span></div>
+    </section>
+  </div>
+  <section class="demo-controls" aria-label="示例交互控制" data-i18n-aria="controlsLabel">
+    <p class="controls-title" data-i18n="controlsIntro">交互测试 · 选择项目后，可切换当前聊天状态、增加聊天，或完成后逐个标记已看。</p>
+    <div class="controls">
+      <label class="control-label"><span data-i18n="project">项目</span><select id="projectSelect" aria-label="编辑哪个示例项目" data-i18n-aria="projectSelect"></select></label>
+      <label class="control-label"><span data-i18n="currentChat">当前聊天</span><select id="chatSelect" aria-label="编辑哪个示例聊天" data-i18n-aria="chatSelect"></select></label>
+      <label class="control-label"><span data-i18n="status">状态</span><select id="stateSelect" aria-label="切换示例聊天状态" data-i18n-aria="stateSelect"></select></label>
+      <button class="small-button" id="demoNotice" data-i18n="demoNotice">演示状态提示</button>
+      <button class="small-button" id="addChat" data-i18n="addChat">新增对话</button>
+      <button class="small-button" id="finishProject" data-i18n="finishProject">本项目全部完成</button>
+      <button class="small-button" id="clearSeen" data-i18n="clearSeen">标记终态已看</button>
+    </div>
+    <div class="controls">
+      <button class="small-button" id="longName" data-i18n="longName" aria-pressed="false">长名称</button>
+      <button class="small-button" id="fourChats" data-i18n="fourChats">同项目四个对话</button>
+      <button class="small-button" id="disconnect" aria-pressed="false">模拟断线</button>
+      <label class="control-label"><span data-i18n="previewWidth">预览宽度</span><select id="widthSelect" data-i18n-aria="previewWidth"><option value="auto" data-i18n="fitWindow">跟随窗口</option><option value="375">375 px</option><option value="320">320 px</option></select></label>
+    </div>
+    <p class="notice-rule" data-i18n="noticeRule">状态变化时在右上方简要提示，驻留 6 秒；连续变化更新同一条提示。</p>
+    <p class="event-log" id="eventLog" role="status" aria-live="polite">点击项目名展开面板；点击编号或聊天行会触发示例“打开聊天”事件，不导航真实聊天。</p>
+    <p class="audit-result" id="auditResult" aria-live="polite"></p>
+  </section>
+  <details class="spec" open>
+    <summary data-i18n="specSummary">布局约束与唯一尺寸表</summary>
+    <p data-i18n="specIntro">只调整文件顶部的 layout-contract。构建脚本从这份定义生成正式插件的原生网格；预览不再另存一套位置。菜单栏、选中背景、胶囊、图标和编号都由 Grid 居中；弹窗内部没有单独的纵向偏移。文字交给系统字体和浏览器原生排版，用 WebKit Text Box 去除行框多余留白；同一角色共用基线，不按每个字符串的字形重新计算高度。</p>
+    <table><thead><tr><th data-i18n="element">元素</th><th data-i18n="dimensions">标准尺寸</th><th data-i18n="constraint">约束</th></tr></thead><tbody>
+      <tr><td data-i18n="specBar">菜单栏 / 系统选中背景</td><td data-i18n="specBarSize">32 / 24 px 高</td><td data-i18n="specBarRule">背景与黑胶囊的中线完全相同</td></tr>
+      <tr><td data-i18n="specPill">黑胶囊 / 菜单编号</td><td data-i18n="specPillSize">22 / 18 px 高</td><td data-i18n="specPillRule">每层上下各留 2 px，内容决定宽度</td></tr>
+      <tr><td data-i18n="specType">菜单图标 / 名称 / 数字</td><td>12 / 12 / 10 px</td><td data-i18n="specTypeRule">图标和字形按所在格子的中心定位</td></tr>
+      <tr><td data-i18n="specPanel">弹窗 / 安全边距</td><td>304 / 12 px</td><td data-i18n="specPanelRule">窄屏自动缩小，不超出预览边界</td></tr>
+      <tr><td data-i18n="specHeader">标题栏</td><td data-i18n="specHeaderSize">44 px 高</td><td><code>16px minmax(0,1fr) 28px 36px</code></td></tr>
+      <tr><td data-i18n="specRow">聊天行 / 状态圆 / 操作位</td><td>56 / 20 / 28 px</td><td data-i18n="specRowRule">双行文字整体与状态圆、勾号居中</td></tr>
+    </tbody></table>
+    <p data-i18n="specScope">项目名和对话名保留从 Codex 取得的原文，状态和操作使用当前界面语言。本地与远程按不同项目标识区分；这里的来源与状态用于演示，不是实时清单。关闭监控保留恢复入口，重载不清空编号，窄屏可横向滚动菜单。</p>
+    <p><span data-i18n="references">排版依据：</span><a href="https://developer.apple.com/documentation/technologyoverviews/fonts" data-i18n="appleFonts">Apple 系统字体 API</a> · <a href="https://webkit.org/blog/16301/webkit-features-in-safari-18-2/#text-box">WebKit Text Box</a> · <a href="https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6bsln.html" data-i18n="appleBaselines">Apple 中西文基线</a><span data-i18n="textFallback">。Text Box 不受支持时保留标准行高和 Grid 布局，不退回手算字形坐标。</span></p>
+  </details>
+</main>
+<section class="panel" id="projectPanel" popover="auto" role="dialog" aria-modal="false" aria-labelledby="panelTitle" data-grid="false">
+  <div class="panel-inner">
+    <header class="panel-header">
+      <span class="panel-icon" id="panelIcon" aria-hidden="true"></span>
+      <div class="header-copy"><h2 class="ink" id="panelTitle"></h2><span class="ink source" id="panelSource"></span></div>
+      <button class="icon-button settings-button" id="settingsButton" aria-label="设置" title="弹窗提示与菜单栏设置" hidden><span class="settings-glyph gear-glyph" id="settingsGear"></span><span class="settings-glyph back-glyph" id="settingsBack"></span></button>
+      <button class="icon-button" id="reloadButton" title="重新加载布局，保留当前编号与状态" data-i18n-title="reloadTitle" aria-label="仅重新加载示例插件" data-i18n-aria="reloadLabel"></button>
+      <button class="switch" id="monitorSwitch" role="switch" aria-checked="true" aria-label="监控开关" data-i18n-aria="monitorLabel"><span class="switch-track"><span class="switch-knob"></span></span></button>
+    </header>
+    <div class="divider"></div>
+    <div class="chat-list" id="chatList"></div>
+  </div>
+</section>
+
+<aside class="status-notice" id="statusNotice" popover="manual" role="status" aria-live="polite" aria-atomic="true" data-open="false" data-hold-ms="6000">
+  <button class="notice-activate" id="openNotice" data-i18n-aria="openNotice" aria-label="打开对应的 Codex 对话"></button>
+  <div class="notice-content"><div class="notice-header"><span class="notice-icon" id="noticeIcon" aria-hidden="true"></span><span class="notice-project" id="noticeProject"></span><button class="notice-dismiss" id="dismissNotice" data-i18n-aria="dismissNotice" data-i18n-title="dismissNotice" aria-label="关闭状态提示" title="关闭状态提示">×</button></div>
+  <div class="notice-body"><span class="badge row-badge" id="noticeBadge" aria-hidden="true"><span class="ink"></span></span><div class="notice-copy"><strong class="notice-state" id="noticeState"></strong><span class="notice-title" id="noticeTitle"></span></div></div>
+  <div class="notice-meter" aria-hidden="true"><i id="noticeMeter"></i></div></div>
+</aside>
+<script id="interface-copy" type="application/json">
+{
+  "pageTitle": [
+    "Codex 状态栏 · 双语布局演示",
+    "Codex status bar · Bilingual preview"
+  ],
+  "heading": [
+    "状态栏 · 双语布局演示",
+    "Status bar · Bilingual preview"
+  ],
+  "intro": [
+    "仅切换界面语言，项目与对话名称保留 Codex 原文。这里是可离线打开的交互演示，不操作真实聊天。",
+    "Switch the interface language; project and chat names stay exactly as captured from Codex. This offline demo never operates real chats."
+  ],
+  "languageSection": [
+    "语言规则演示",
+    "Language rule preview"
+  ],
+  "languageLabel": [
+    "Codex 语言（演示）",
+    "Codex language (demo)"
+  ],
+  "languageSelect": [
+    "演示 Codex 语言选择",
+    "Simulate the Codex language setting"
+  ],
+  "automatic": [
+    "自动 / 系统语言",
+    "Automatic / System"
+  ],
+  "languageRule": [
+    "简体中文 → 中文界面；其他选择 → English。项目与对话名称不翻译。",
+    "Simplified Chinese → Chinese UI. Every other choice → English UI. Project and chat names are never translated."
+  ],
+  "showGrid": [
+    "显示网格",
+    "Show grid"
+  ],
+  "hideGrid": [
+    "隐藏网格",
+    "Hide grid"
+  ],
+  "auditButton": [
+    "检查对齐",
+    "Check alignment"
+  ],
+  "resetButton": [
+    "恢复示例",
+    "Reset demo"
+  ],
+  "stageLabel": [
+    "菜单栏与弹窗的响应式预览",
+    "Responsive menu bar and popover preview"
+  ],
+  "menuLabel": [
+    "项目状态栏",
+    "Project status bar"
+  ],
+  "stageNote": [
+    "系统选中背景为布局示意。缩窄窗口可检查收纳，展开面板始终限制在预览安全区内。",
+    "The system selection background is illustrative. Narrow the window to test the layout; the popover stays within the preview safe area."
+  ],
+  "controlsLabel": [
+    "示例交互控制",
+    "Demo controls"
+  ],
+  "controlsIntro": [
+    "交互测试 · 每个项目独立从 1 连号，增删后重排。可切换状态、增加对话，或完成后逐个标记已看。",
+    "Try it: each project starts at 1 and renumbers after chats are added or removed. Change states, add chats, or mark finished chats seen."
+  ],
+  "project": [
+    "项目",
+    "Project"
+  ],
+  "currentChat": [
+    "当前聊天",
+    "Current chat"
+  ],
+  "status": [
+    "状态",
+    "Status"
+  ],
+  "projectSelect": [
+    "编辑哪个示例项目",
+    "Select a demo project"
+  ],
+  "chatSelect": [
+    "编辑哪个示例聊天",
+    "Select a demo chat"
+  ],
+  "stateSelect": [
+    "切换示例聊天状态",
+    "Change the demo chat status"
+  ],
+  "addChat": [
+    "新增对话",
+    "Add chat"
+  ],
+  "finishProject": [
+    "本项目全部完成",
+    "Complete project"
+  ],
+  "clearSeen": [
+    "标记终态已看",
+    "Mark finished chats seen"
+  ],
+  "longName": [
+    "测试长名称",
+    "Test long name"
+  ],
+  "fourChats": [
+    "同项目四个对话",
+    "Four chats in project"
+  ],
+  "disconnect": [
+    "模拟断线",
+    "Simulate disconnect"
+  ],
+  "reconnect": [
+    "恢复连接",
+    "Reconnect"
+  ],
+  "previewWidth": [
+    "预览宽度",
+    "Preview width"
+  ],
+  "fitWindow": [
+    "跟随窗口",
+    "Fit window"
+  ],
+  "specSummary": [
+    "布局约束与唯一尺寸表",
+    "Shared layout rules and dimensions"
+  ],
+  "specIntro": [
+    "只调整文件顶部的 layout-contract。构建脚本从这份定义生成正式插件的原生网格；预览不再另存一套位置。菜单栏、选中背景、胶囊、图标和编号都由 Grid 居中。系统字体与 WebKit Text Box 处理文字；同一角色共用基线，不按字符串单独补偏移。",
+    "Edit layout-contract at the top of this file. The build generates the production native grids from the same definition. Grid centers the menu bar, selection background, capsules, icons and numbers. System fonts and WebKit Text Box handle text; each role shares one baseline, without per-string offsets."
+  ],
+  "element": [
+    "元素",
+    "Element"
+  ],
+  "dimensions": [
+    "标准尺寸",
+    "Dimensions"
+  ],
+  "constraint": [
+    "约束",
+    "Constraint"
+  ],
+  "specBar": [
+    "菜单栏 / 系统选中背景",
+    "Menu bar / system selection"
+  ],
+  "specBarSize": [
+    "32 / 24 px 高",
+    "32 / 24 px high"
+  ],
+  "specBarRule": [
+    "背景与黑胶囊的中线完全相同",
+    "Selection and capsule share a centerline"
+  ],
+  "specPill": [
+    "黑胶囊 / 菜单编号",
+    "Black capsule / menu badge"
+  ],
+  "specPillSize": [
+    "22 / 18 px 高",
+    "22 / 18 px high"
+  ],
+  "specPillRule": [
+    "每层上下各留 2 px，内容决定宽度",
+    "2 px top and bottom per layer; content sets width"
+  ],
+  "specType": [
+    "菜单图标 / 名称 / 数字",
+    "Menu icon / name / number"
+  ],
+  "specTypeRule": [
+    "图标与文字按各自网格和字体度量定位",
+    "Icons use grid alignment; text uses font metrics"
+  ],
+  "specPanel": [
+    "弹窗 / 安全边距",
+    "Popover / safe margin"
+  ],
+  "specPanelRule": [
+    "窄屏自动缩小，不超出预览边界",
+    "Shrinks on narrow screens; stays in the safe area"
+  ],
+  "specHeader": [
+    "标题栏",
+    "Header"
+  ],
+  "specHeaderSize": [
+    "44 px 高",
+    "44 px high"
+  ],
+  "specRow": [
+    "聊天行 / 状态圆 / 操作位",
+    "Chat row / badge / action"
+  ],
+  "specRowRule": [
+    "双行文字整体与状态圆、勾号居中",
+    "Two-line copy, badge and checkmark share a centerline"
+  ],
+  "specScope": [
+    "项目与对话名称保留 Codex 原文。暂停项目可从右侧全局入口恢复，总开关保留各项目偏好与本地记录；示例不操作真实聊天。",
+    "Project and chat names keep their original Codex text. Resume paused projects from the right-hand control. The main switch keeps project preferences and local records. This demo never operates real chats."
+  ],
+  "references": [
+    "排版依据：",
+    "Typography references: "
+  ],
+  "appleFonts": [
+    "Apple 系统字体 API",
+    "Apple system fonts"
+  ],
+  "appleBaselines": [
+    "Apple 中西文基线",
+    "Apple Latin and CJK baselines"
+  ],
+  "textFallback": [
+    "。不支持 Text Box 时保留标准行高和 Grid 布局，不退回手算字形坐标。",
+    ". Without Text Box support, standard line height and Grid remain in use; there is no manual glyph positioning."
+  ],
+  "reloadTitle": [
+    "重新加载布局，保留当前编号与状态",
+    "Reload layout; keep current numbers and states"
+  ],
+  "reloadLabel": [
+    "仅重新加载示例插件",
+    "Reload only the demo plugin"
+  ],
+  "monitorLabel": [
+    "全部项目状态更新",
+    "All chat updates"
+  ],
+  "monitorOff": [
+    "暂停全部更新",
+    "Pause all updates"
+  ],
+  "monitorOn": [
+    "恢复全部更新",
+    "Resume all updates"
+  ],
+  "noChats": [
+    "暂无进行中的对话",
+    "No active chats"
+  ],
+  "monitorDisabled": [
+    "状态更新已暂停",
+    "Updates paused"
+  ],
+  "chatBucket": [
+    "聊天",
+    "Chat"
+  ],
+  "local": [
+    "本地",
+    "Local"
+  ],
+  "remote": [
+    "远程 · {host}",
+    "Remote · {host}"
+  ],
+  "controlSource": [
+    "全部项目",
+    "All projects"
+  ],
+  "running": [
+    "进行中",
+    "Running"
+  ],
+  "approval": [
+    "等待授权",
+    "Needs approval"
+  ],
+  "input": [
+    "等待你回答",
+    "Needs your input"
+  ],
+  "completed": [
+    "完成未看",
+    "Completed · Unseen"
+  ],
+  "failed": [
+    "运行失败",
+    "Failed"
+  ],
+  "stopped": [
+    "已停止",
+    "Stopped"
+  ],
+  "unknown": [
+    "状态未知",
+    "Unknown"
+  ],
+  "justNow": [
+    "刚刚",
+    "Just now"
+  ],
+  "seconds": [
+    "{n} 秒",
+    "{n}s"
+  ],
+  "minutes": [
+    "{n} 分钟",
+    "{n}m"
+  ],
+  "hoursMinutes": [
+    "{h} 小时 {m} 分钟",
+    "{h}h {m}m"
+  ],
+  "expandProject": [
+    "切换 {project} 的聊天面板 · {source}",
+    "Toggle chats for {project} · {source}"
+  ],
+  "openBadge": [
+    "打开 {project} 的对话 {n}，{title}，{status}",
+    "Open chat {n} in {project}, {title}, {status}"
+  ],
+  "openRow": [
+    "打开聊天 {n}，{title}",
+    "Open chat {n}, {title}"
+  ],
+  "seen": [
+    "标记已看",
+    "Mark seen"
+  ],
+  "seenLabel": [
+    "将聊天 {n} 标记已看",
+    "Mark chat {n} as seen"
+  ],
+  "viewport": [
+    "预览 {width} px · 窗口 {w} × {h} · DPR {dpr}",
+    "Preview {width} px · Window {w} × {h} · DPR {dpr}"
+  ],
+  "initialLog": [
+    "点击项目名展开面板；点击编号或聊天行会触发示例“打开聊天”事件，不导航真实聊天。",
+    "Click a project name to toggle its popover. A number or chat row emits a demo “open chat” event without navigating to a real chat."
+  ],
+  "openedLog": [
+    "示例事件：打开 {project} · 聊天 {n}「{title}」 · {source}",
+    "Demo event: open {project} · Chat {n} “{title}” · {source}"
+  ],
+  "seenLog": [
+    "已标记对话 {n} 已看；本项目显示序号已重新连号。",
+    "Chat {n} marked seen; this project’s display numbers are now consecutive."
+  ],
+  "reloadLog": [
+    "已重新加载示例布局，所有编号与状态保持。",
+    "Demo layout reloaded; all numbers and states are unchanged."
+  ],
+  "monitorOnLog": [
+    "状态更新已恢复，项目偏好与本地记录保持。",
+    "Updates resumed. Project preferences and local records are retained."
+  ],
+  "monitorOffLog": [
+    "全部更新已暂停，可从右侧入口恢复。",
+    "All updates paused. Resume from the right-hand control."
+  ],
+  "completeLog": [
+    "本项目全部完成；绿色提醒保留到标记已看。",
+    "All chats in this project are complete. Green reminders stay until marked seen."
+  ],
+  "clearLog": [
+    "已移除本项目的终态提醒；运行中的聊天不受影响。",
+    "Finished reminders removed from this project; running chats are unchanged."
+  ],
+  "fourLog": [
+    "同一项目四个对话；每个编号保持独立点击目标。",
+    "Four chats in one project; each number has its own click target."
+  ],
+  "connectedLog": [
+    "连接已恢复，保留原状态。",
+    "Connection restored; original states retained."
+  ],
+  "disconnectedLog": [
+    "连接中断，显示虚线未知态，不伪报完成。",
+    "Disconnected. Dashed badges show Unknown, not Completed."
+  ],
+  "newChatTitle": [
+    "新增对话 {n}",
+    "New chat {n}"
+  ],
+  "checking": [
+    "正在检查布局…",
+    "Checking layout…"
+  ],
+  "auditPassed": [
+    "通过 · {n} 项对齐约束{suffix}",
+    "Passed · {n} alignment checks{suffix}"
+  ],
+  "auditOpen": [
+    "，弹窗在安全区内",
+    "; popover inside safe area"
+  ],
+  "auditClosed": [
+    "（当前未展开弹窗）",
+    " (popover closed)"
+  ],
+  "auditFailed": [
+    "需要检查 · {errors}",
+    "Needs attention · {errors}"
+  ],
+  "difference": [
+    "{label}: 相差 {n} px",
+    "{label}: {n} px difference"
+  ],
+  "outerCenter": [
+    "内外中线",
+    "selection/capsule centerline"
+  ],
+  "innerCenter": [
+    "内部中线",
+    "internal centerline"
+  ],
+  "sharedBaseline": [
+    "中英文共用基线",
+    "shared Latin/CJK baseline"
+  ],
+  "headerCenter": [
+    "弹窗标题栏",
+    "popover header"
+  ],
+  "rowCenter": [
+    "聊天行整体中线",
+    "chat row centerline"
+  ],
+  "safeAreaError": [
+    "弹窗超出安全边界",
+    "Popover outside safe area"
+  ],
+  "productionReload": [
+    "重新加载插件",
+    "Reload plugin"
+  ],
+  "productionReloadHint": [
+    "重新加载插件（不重启 Codex）",
+    "Reload plugin (without restarting Codex)"
+  ],
+  "projectChats": [
+    "{project}的聊天",
+    "Chats in {project}"
+  ],
+  "openChat": [
+    "打开聊天",
+    "Open chat"
+  ],
+  "openPanelHint": [
+    "点击展开聊天",
+    "Click to show chats"
+  ],
+  "backToChatHint": [
+    "点击回到聊天",
+    "Click to open chat"
+  ],
+  "untitledChat": [
+    "未命名聊天",
+    "Untitled chat"
+  ],
+  "pendingProject": [
+    "项目待同步",
+    "Project syncing"
+  ],
+  "remoteGeneric": [
+    "远程",
+    "Remote"
+  ],
+  "connection0": [
+    "正在连接 Codex",
+    "Connecting to Codex"
+  ],
+  "connection1": [
+    "状态更新已暂停",
+    "Updates paused"
+  ],
+  "connection2": [
+    "菜单栏组件尚未编译",
+    "Menu bar component has not been built"
+  ],
+  "connection3": [
+    "本机通信权限不足",
+    "Local communication permission is required"
+  ],
+  "connection4": [
+    "等待 Codex 桌面启动",
+    "Waiting for Codex desktop"
+  ],
+  "connection5": [
+    "正在同步当前聊天",
+    "Syncing current chats"
+  ],
+  "connection6": [
+    "已连接当前 Codex 桌面",
+    "Connected to Codex desktop"
+  ],
+  "connection7": [
+    "Codex 状态协议已变化，请更新插件",
+    "Codex status protocol changed; update this plugin"
+  ],
+  "connection8": [
+    "菜单栏组件连接中断；状态服务仍在运行",
+    "Menu bar component disconnected; status service is still running"
+  ],
+  "connection9": [
+    "菜单栏组件未能保持运行；请从 Codex 桌面插件环境加载",
+    "Menu bar component stopped; load it from the Codex desktop plugin"
+  ],
+  "connection10": [
+    "与 Codex 连接中断",
+    "Disconnected from Codex"
+  ],
+  "connection11": [
+    "状态接口暂不可用，正在重连",
+    "Status interface unavailable; reconnecting"
+  ],
+  "connection12": [
+    "新版加载失败，已恢复先前插件版本",
+    "Update failed; previous plugin version restored"
+  ],
+  "demoNotice": [
+    "演示状态提示",
+    "Preview status notice"
+  ],
+  "noticeRule": [
+    "状态变化时在右上方简要提示，驻留 6 秒；连续变化更新同一条提示。",
+    "Status changes show a brief notice at the upper right for 6 seconds. New changes update the same notice."
+  ],
+  "dismissNotice": [
+    "关闭状态提示",
+    "Dismiss status notice"
+  ],
+  "noticeAria": [
+    "{project}，对话 {n}，{title}，{state}",
+    "{project}, chat {n}, {title}, {state}"
+  ],
+  "noticeProject": [
+    "{project} · 对话 {n}",
+    "{project} · Chat {n}"
+  ],
+  "noticeDemoTitle": [
+    "六秒状态提示样式检查",
+    "Six-second status notice check"
+  ],
+  "noticeDemoBadge": [
+    "示例",
+    "Sample"
+  ],
+  "noticeCompleted": [
+    "本轮已完成",
+    "Completed"
+  ],
+  "openNotice": [
+    "打开对应的 Codex 对话",
+    "Open this chat in Codex"
+  ],
+  "statusTitle": [
+    "对话状态",
+    "Chat Status"
+  ],
+  "allProjects": [
+    "全部项目",
+    "All projects"
+  ],
+  "updatesOn": [
+    "更新中",
+    "Updates on"
+  ],
+  "projectPaused": [
+    "已暂停",
+    "Paused"
+  ],
+  "readyToResume": [
+    "等待恢复",
+    "Ready to resume"
+  ],
+  "projectOn": [
+    "开启此项目更新",
+    "Resume this project"
+  ],
+  "projectOff": [
+    "暂停此项目更新",
+    "Pause this project"
+  ],
+  "projectSwitch": [
+    "{project} 的状态更新",
+    "Updates for {project}"
+  ],
+  "settings": [
+    "设置",
+    "Settings"
+  ],
+  "backToProjects": [
+    "返回项目列表",
+    "Back to projects"
+  ],
+  "alertSettings": [
+    "弹窗提示",
+    "Pop-up alerts"
+  ],
+  "alertSettingsHint": [
+    "弹窗提示与菜单栏设置",
+    "Alert and menu bar settings"
+  ],
+  "menuBarSection": [
+    "菜单栏",
+    "Menu bar"
+  ],
+  "statusButtonOnly": [
+    "仅保留总入口",
+    "Status button only"
+  ],
+  "alertSwitch": [
+    "显示「{state}」提示",
+    "Show {state} alerts"
+  ],
+  "statusIcon": [
+    "入口图标",
+    "Status icon"
+  ],
+  "chooseStatusEmoji": [
+    "选择入口表情",
+    "Choose status emoji"
+  ],
+  "emojiDemoHint": [
+    "正式插件点击图标会打开 macOS“表情与符号”。HTML仅演示按钮外观。",
+    "The native icon button opens macOS Emoji & Symbols. This HTML previews its appearance."
+  ],
+  "preferences": [
+    "偏好设置",
+    "Preferences"
+  ],
+  "aggregateStatus": [
+    "{status} · {n} 个聊天",
+    "{status} · {n} chats"
+  ],
+  "syncing": [
+    "正在同步",
+    "Syncing"
+  ],
+  "extensionOffline": [
+    "顶栏扩展未连接；请启用 Codex Signal GNOME 扩展",
+    "Top bar disconnected; enable the Codex Signal GNOME extension"
+  ],
+  "linkHandlerMissing": [
+    "找不到聊天链接处理器；请配置 codex:// 桌面入口",
+    "Chat link handler unavailable; configure the codex:// desktop handler"
+  ],
+  "beta": [
+    "测试版",
+    "Beta"
+  ],
+  "openSystemPreferences": [
+    "打开系统偏好设置",
+    "Open system preferences"
+  ]
+}
+</script>
+<script>
+'use strict';
+const layoutContract=JSON.parse(document.querySelector('#layout-contract').textContent);
+const layoutStyle=document.createElement('style');
+const cssTrack=t=>typeof t==='number'?t+'px':t;
+const vars=Object.entries(layoutContract.metrics).map(([k,v])=>`--${k}:${v}px;`).join('');
+const grids=Object.values(layoutContract.grids).map(g=>`${g.selector}{display:grid;grid-template-columns:${g.columns.map(cssTrack).join(' ')};grid-template-rows:${g.rows.map(cssTrack).join(' ')};column-gap:${g.columnGap}px;row-gap:${g.rowGap}px;padding:${g.padding.map(v=>v+'px').join(' ')};align-items:${g.alignItems};align-content:${g.alignContent};}`).join('');
+const fonts=Object.values(layoutContract.fonts).map(f=>`${f.selector}{font-size:var(--${f.size});font-weight:${f.weight};}`).join('');
+const responsive=layoutContract.responsive.map(r=>`@container screen (max-width:${r.maximumWidth}px){.menu-items{${Object.entries(r.metrics).map(([k,v])=>`--${k}:${v}px;`).join('')}}}`).join('');
+layoutStyle.textContent=`:root{${vars}}${grids}${fonts}${responsive}`;document.head.append(layoutStyle);
+/* DOM 的位置只有 Grid 与弹窗锚点两类；不手算任何文字基线。 */
+const $ = id => document.getElementById(id);
+const stage=$('stage'), menu=$('menuItems'), panel=$('projectPanel'), list=$('chatList');
+const projectLane=document.createElement('div');projectLane.className='project-lane';menu.append(projectLane);
+const NS='http://www.w3.org/2000/svg';
+const COPY=JSON.parse(document.getElementById('interface-copy').textContent);
+// This explicit input simulates Codex's setting, never the browser/OS language.
+let codexLanguage=new URL(location.href).searchParams.get('codexLanguage')||'zh-CN';
+const interfaceLanguage=()=>['zh-CN','zh-Hans'].includes(codexLanguage)?'zh-CN':'en';
+function t(key,values={}){if(!COPY[key])throw new Error('Missing UI copy: '+key);return COPY[key][interfaceLanguage()==='zh-CN'?0:1].replace(/\{(\w+)\}/g,(_,name)=>String(values[name]??'{'+name+'}'));}
+const projectName=p=>['control','global-control'].includes(p.id)?t('statusTitle'):p.id==='ungrouped'?t('chatBucket'):p.name;
+// Display ordinals are derived per project. IDs and captured metadata never
+// become click targets by ordinal, even when a preceding chat disappears.
+const visibleNumber=(p,c)=>p.chats.findIndex(chat=>chat.id===c.id)+1;
+const projectSource=p=>['control','global-control'].includes(p.id)?t('controlSource'):p.host==='local'?t('local'):t('remote',{host:p.hostName});
+const stateLabel=key=>t(key);
+function elapsed(seconds){if(!seconds)return t('justNow');if(seconds<60)return t('seconds',{n:seconds});if(seconds<3600)return t('minutes',{n:Math.floor(seconds/60)});return t('hoursMinutes',{h:Math.floor(seconds/3600),m:Math.floor(seconds%3600/60)});}
+let lastEvent={key:'initialLog',values:{}};
+function renderLog(){const v=typeof lastEvent.values==='function'?lastEvent.values():lastEvent.values;$('eventLog').textContent=t(lastEvent.key,v);}
+function applyCopy(){
+ document.documentElement.lang=interfaceLanguage();document.title=t('pageTitle');
+ for(const [attribute,target]of [['data-i18n',null],['data-i18n-aria','aria-label'],['data-i18n-title','title']])for(const el of document.querySelectorAll('['+attribute+']')){const value=t(el.getAttribute(attribute));if(target)el.setAttribute(target,value);else el.textContent=value;}
+ $('gridToggle').textContent=t(stage.dataset.grid==='true'?'hideGrid':'showGrid');
+ $('disconnect').textContent=t(connected?'disconnect':'reconnect');
+ $('stateSelect').replaceChildren(...Object.keys(STATES).filter(key=>key!=='syncing').map(key=>new Option(stateLabel(key),key)));
+ const select=$('codexLanguage');if(![...select.options].some(o=>o.value===codexLanguage))select.add(new Option(codexLanguage,codexLanguage));select.value=codexLanguage;
+ renderLog();renderNotice();
+}
+function setCodexLanguage(value){codexLanguage=value;applyCopy();render();renderPanel();}
+
+const iconPaths={
+  cap:'<path d="m2 8 10-5 10 5-10 5-10-5Z"/><path d="M6 10v6c4 3 8 3 12 0v-6M22 8v7"/>',
+  health:'<path d="M3 3v5a5 5 0 0 0 10 0V3M2 3h3M11 3h3M8 13v2a5 5 0 0 0 10 0v-3"/><circle cx="18" cy="9" r="3"/>',
+  heart:'<path d="M20.8 5.5a5.4 5.4 0 0 0-7.6 0L12 6.8l-1.2-1.3a5.4 5.4 0 0 0-7.6 7.6L12 22l8.8-8.9a5.4 5.4 0 0 0 0-7.6Z"/>',
+  chat:'<path d="M4 3h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M18 8h2a2 2 0 0 1 2 2v9h-3v3l-4-3h-4"/>',
+  reload:'<path d="M20 7v5h-5M20 12a8 8 0 1 1-2-6L20 8"/>',
+  check:'<path d="m5 12 4 4L20 5"/>',
+  power:'<path d="M12 2v10M6.4 5.4a9 9 0 1 0 11.2 0"/>'
+};
+function icon(name){if(name==='beacon'){const span=document.createElement('span');span.className='emoji-icon';span.textContent=statusEmoji;return span;}const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.classList.add('symbol');svg.setAttribute('aria-hidden','true');svg.innerHTML=iconPaths[name]||iconPaths.chat;return svg;}
+const STATES={running:{color:'#2963e8',fg:'#fff'},approval:{color:'#ffab2b',fg:'#000'},input:{color:'#874ad6',fg:'#fff'},completed:{color:'#24a359',fg:'#000'},failed:{color:'#d4333d',fg:'#fff'},stopped:{color:'#9ea3ad',fg:'#000'},syncing:{color:'#9ea3ad',fg:'#000'},unknown:{color:'#9ea3ad',fg:'#000'}};
+const terminal=s=>['completed','failed','stopped'].includes(s);
+let projects=[],enabled=true,connected=true,activeId='aurora',editId='aurora',editChat='local-1',serial=4,longNames=false;
+const slots=new Map(),rows=new Map();
+let layoutFrame=0,auditEpoch=0,lastInvoker=null;
+const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+const keyboard=()=>document.documentElement.dataset.keyboard==='true';
+document.addEventListener('keydown',()=>{document.documentElement.dataset.keyboard='true';},true);
+document.addEventListener('pointerdown',()=>{document.documentElement.dataset.keyboard='false';},true);
+// All project names and conversations below are fictional demo fixtures.
+// The synthetic ungrouped identity has a localized UI label, not a project name.
+function data(){return [
+ {id:'aurora',name:'Aurora',icon:'cap',host:'local',next:2,chats:[{id:'local-1',n:1,title:'Build a writing assistant',state:'running',elapsed:120}]},
+ {id:'atlas',name:'Atlas',icon:'health',host:'local',next:6,chats:[{id:'atlas-1',n:4,title:'Review application flow',state:'approval',elapsed:300},{id:'atlas-2',n:5,title:'Polish a settings screen',state:'running',elapsed:60}]},
+ {id:'remote-lab',name:'Remote Lab',icon:'heart',hostName:'Mac mini',host:'remote-demo',next:2,chats:[{id:'remote-1',n:1,title:'Prepare the desktop build',state:'input',elapsed:48}]},
+ {id:'ungrouped',name:null,icon:'chat',host:'local',next:2,chats:[{id:'local-2',n:1,title:'Build a status plugin',state:'completed',elapsed:0}]}
+];}
+const controlProject={id:'control',name:null,icon:'beacon',host:'local',chats:[]};
+const globalProject={...controlProject,id:'global-control',circle:true};
+let statusEmoji='🔦';
+const globalContext=p=>p.id==='control'||p.id==='global-control';
+const projectControls=new Map();
+let compactMenuBar=false,settingsMode=false,settingsTarget=false,settingsEpoch=0,settingsAnimation=null,settingsResize=null;
+document.documentElement.style.setProperty('--settings-icon-ms',layoutContract.settingsMotion.icon*1000);
+const alertChoices=new Set(layoutContract.alertTypes),alertRows=new Map();
+let settingsView=null;
+function currentProject(){return activeId==='global-control'?globalProject:activeId==='control'?controlProject:projects.find(p=>p.id===activeId)||controlProject;}
+function effective(chat){return connected?chat.state:'unknown';}
+function log(key,values={}){lastEvent={key,values};renderLog();}
+function pulse(el,enter=true){if(reduced()||keyboard())return;el.animate([{opacity:enter?0:1,transform:enter?'translateY(-3px) scale(.97)':'none'},{opacity:enter?1:0,transform:enter?'none':'translateY(-3px) scale(.97)'}],{duration:enter?180:140,easing:'cubic-bezier(.23,1,.32,1)'});}
+function retire(el,row=false){
+ el.inert=true;el.dataset.leaving='true';el.setAttribute('aria-hidden','true');
+ if(reduced()||keyboard()){anchorObserver.unobserve(el);el.remove();return;}
+ const rect=el.getBoundingClientRect(),style=getComputedStyle(el);
+ el.style.overflow='hidden';el.style.minInlineSize='0';el.style.minBlockSize='0';
+ const from=row?{blockSize:rect.height+'px',opacity:1}:{inlineSize:rect.width+'px',paddingInlineStart:style.paddingInlineStart,paddingInlineEnd:style.paddingInlineEnd,marginInlineStart:style.marginInlineStart,opacity:1};
+ const to=row?{blockSize:'0px',opacity:0}:{inlineSize:'0px',paddingInlineStart:'0px',paddingInlineEnd:'0px',marginInlineStart:'0px',opacity:0};
+ const animation=el.animate([from,to],{duration:150,easing:'cubic-bezier(.23,1,.32,1)',fill:'forwards'});
+ animation.finished.catch(()=>{}).then(()=>{anchorObserver.unobserve(el);el.remove();schedulePlacement();});
+}
+// Only project slots change width. The rightmost global slot is retained.
+// Actual space must retract (a transform would leave an invisible wide slot).
+function setSlotVisible(r,show){
+ const el=r.el,rev=(r.visibilityRevision||0)+1;r.visibilityRevision=rev;
+ const rect=el.getBoundingClientRect(),style=getComputedStyle(el),fresh=!r.wasShown;
+ const from={inlineSize:rect.width+'px',paddingInlineStart:style.paddingInlineStart,paddingInlineEnd:style.paddingInlineEnd,opacity:style.opacity};
+ r.slotAnimation?.cancel();r.slotAnimation=null;
+ el.style.inlineSize='';el.style.paddingInlineStart='';el.style.paddingInlineEnd='';el.style.opacity='';el.style.overflow='';
+ const natural=el.getBoundingClientRect(),base=getComputedStyle(el);
+ const to=show?{inlineSize:natural.width+'px',paddingInlineStart:base.paddingInlineStart,paddingInlineEnd:base.paddingInlineEnd,opacity:1}:{inlineSize:'0px',paddingInlineStart:'0px',paddingInlineEnd:'0px',opacity:0};
+ if(show){delete el.dataset.leaving;el.inert=false;el.removeAttribute('aria-hidden');r.wasShown=true;if(fresh)Object.assign(from,{inlineSize:'0px',paddingInlineStart:'0px',paddingInlineEnd:'0px',opacity:0});}
+ else{el.dataset.leaving='true';el.inert=true;el.setAttribute('aria-hidden','true');}
+ const finish=()=>{if(r.visibilityRevision!==rev)return;r.slotAnimation=null;if(!show){anchorObserver.unobserve(el);el.remove();slots.delete(el.dataset.project);}el.style.inlineSize='';el.style.paddingInlineStart='';el.style.paddingInlineEnd='';el.style.opacity='';el.style.overflow='';schedulePlacement();};
+ if(reduced()||keyboard()){finish();return;}
+ el.style.overflow='hidden';
+ const animation=el.animate([from,to],{duration:layoutContract.menuMotion.transition*1000,easing:'cubic-bezier(.23,1,.32,1)',fill:'both'});r.slotAnimation=animation;
+ animation.finished.then(()=>{if(r.visibilityRevision!==rev)return;animation.cancel();finish();}).catch(()=>{});
+}
+/* 原生文本组件：系统负责 fallback、字形塑形和跨语言基线。 */
+function ink(el,text,center=false){
+ if(el.dataset.fullText===text && el.dataset.center===String(center))return;
+ el.dataset.fullText=text;el.dataset.center=String(center);el.setAttribute('aria-label',text);el.title=text;
+ if(!el.firstElementChild){const label=document.createElement('span'),marker=document.createElement('i');label.className='ink-label';marker.className='baseline-marker';marker.setAttribute('aria-hidden','true');label.append(document.createTextNode(''),marker);el.append(label);}
+ el.firstElementChild.firstChild.nodeValue=text;
+}
+function scheduleLabels(){schedulePlacement();}
+function makeInk(cls,text,center=false){const el=document.createElement('span');el.className='ink '+cls;ink(el,text,center);return el;}
+function setState(el,chat){const key=effective(chat),s=STATES[key];el.dataset.state=key;el.style.setProperty('--state-bg',s.color);el.style.setProperty('--state-fg',s.fg);}
+function updateBadgeNumber(el,n){ink(el.querySelector('.ink'),String(n),true);if(n>9)el.style.setProperty('--number-font',layoutContract.metrics[el.classList.contains('row-badge')?'number-row-multi-font':'number-multi-font']+'px');else el.style.removeProperty('--number-font');}
+function badge(chat,n,row=false){const b=document.createElement(row?'span':'button');b.className='badge'+(row?' row-badge':'');if(!row)b.type='button';b.append(makeInk('',String(n),true));setState(b,chat);updateBadgeNumber(b,n);return b;}
+function ensureOrder(parent,nodes){nodes.forEach((node,i)=>{const live=Array.from(parent.children).filter(n=>!n.dataset.leaving);if(live[i]!==node)parent.insertBefore(node,live[i]||null);});}
+function makeSlot(p){
+ const el=document.createElement('div');el.className='slot';el.dataset.project=p.id;
+ const cap=document.createElement('div');cap.className='capsule'+(p.circle?' is-global':globalContext(p)?' status-label':'');
+ const trigger=document.createElement('button');trigger.className=p.circle?'project-button global-trigger':globalContext(p)?'project-button status-trigger':'project-button';trigger.type='button';trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-controls','projectPanel');trigger.setAttribute('popovertarget','projectPanel');
+ const symbol=document.createElement('span');symbol.className='project-icon';symbol.append(icon(p.icon));
+ const name=makeInk('menu-name',projectName(p)),badges=document.createElement('div');badges.className='badge-list';trigger.append(symbol,name);cap.append(trigger,badges);el.append(cap);
+ trigger.addEventListener('click',event=>{
+  // Keep the native invoker relationship for light-dismiss and focus, but
+  // handle the shared panel's project selection and toggle exactly once.
+  event.preventDefault();
+  const wasOpen=panel.matches(':popover-open'),same=activeId===p.id;
+  panel.classList.toggle('instant',event.detail===0);
+  if(wasOpen&&same){closePanel(event.detail===0);return;}
+  activeId=p.id;editId=globalContext(p)?(projects[0]?.id||'aurora'):p.id;lastInvoker=trigger;
+  renderPanel();renderControls();setOpenState();placePanel();
+  if(!wasOpen)panel.showPopover({source:trigger});setOpenState();
+  auditSettled();
+  requestAnimationFrame(()=>{panel.classList.remove('instant');if(event.detail===0&&panel.matches(':popover-open'))(list.querySelector('.row-open')||$('monitorSwitch')).focus({preventScroll:true});});
+ });
+ anchorObserver.observe(el);return {el,cap,trigger,name,badges,badgeMap:new Map()};
+}
+function aggregateStatus(){
+ if(!enabled)return null;const states=new Set(projects.filter(p=>!p.paused).flatMap(p=>p.chats.map(c=>p.syncing?'syncing':effective(c))));return layoutContract.statusPriority.find(s=>states.has(s))||(states.has('syncing')?'syncing':null);
+}
+function renderMenu(){
+ const visible=enabled?projects.filter(p=>p.chats.length&&!p.paused&&!p.syncing):[];
+ const shown=compactMenuBar?[globalProject]:[...visible,globalProject];
+ const live=new Set(shown.map(p=>p.id));
+ for(const [id,r]of slots)if(!live.has(id)&&!r.el.dataset.leaving)setSlotVisible(r,false);
+ for(const p of shown){
+  let r=slots.get(p.id),enter=!r||!!r.el.dataset.leaving;if(!r){r=makeSlot(p);slots.set(p.id,r);(p.id===globalProject.id?menu:projectLane).append(r.el);}
+  if(globalContext(p))r.trigger.querySelector('.project-icon').replaceChildren(icon('beacon'));ink(r.name,projectName(p));r.trigger.title=`${projectName(p)} · ${projectSource(p)}`;r.trigger.setAttribute('aria-label',t('expandProject',{project:projectName(p),source:projectSource(p)}));
+  if(p.id==='global-control'){const phase=aggregateStatus(),style=phase==='syncing'?{color:'#000',fg:'#fff'}:STATES[phase];r.cap.dataset.summary=phase||'idle';r.cap.style.setProperty('--summary-bg',style?.color||'#000');r.cap.style.setProperty('--summary-fg',style?.fg||'#fff');const summary=!enabled?t('monitorDisabled'):phase?t('aggregateStatus',{status:stateLabel(phase),n:projects.filter(p=>!p.paused).reduce((n,p)=>n+p.chats.length,0)}):t('noChats');r.trigger.title=projectName(p)+' · '+summary;r.trigger.setAttribute('aria-label',r.trigger.title);}
+  const ids=new Set(p.chats.map(c=>c.id));for(const [id,b]of r.badgeMap)if(!ids.has(id)){retire(b);r.badgeMap.delete(id);}
+  for(const c of p.chats){const n=visibleNumber(p,c);let b=r.badgeMap.get(c.id);if(!b){b=badge(c,n);b.addEventListener('click',()=>openChat(p,c));r.badgeMap.set(c.id,b);r.badges.append(b);pulse(b);}setState(b,c);updateBadgeNumber(b,n);b.title=`${projectName(p)} · ${n} · ${projectSource(p)}\n${c.title}\n${stateLabel(effective(c))}`;b.setAttribute('aria-label',t('openBadge',{project:projectName(p),n,title:c.title,status:stateLabel(effective(c))}));}
+  ensureOrder(r.badges,p.chats.map(c=>r.badgeMap.get(c.id)));
+  if(enter&&p.id!==globalProject.id)setSlotVisible(r,true);
+ }
+ ensureOrder(projectLane,shown.filter(p=>p.id!==globalProject.id).map(p=>slots.get(p.id).el));
+ if(panel.matches(':popover-open')&&!live.has(activeId))closePanel();
+ setOpenState();scheduleLabels();
+}
+function makeRow(p,c){
+ const el=document.createElement('div');el.className='chat-row';el.dataset.chat=c.id;
+ const open=document.createElement('button');open.className='row-open';open.type='button';
+ const dot=badge(c,visibleNumber(p,c),true),copy=document.createElement('div');copy.className='row-copy';
+ const title=makeInk('row-title',c.title),detail=makeInk('row-detail','');copy.append(title,detail);open.append(dot,copy);
+ const seen=document.createElement('button');seen.className='seen';seen.type='button';seen.append(icon('check'));
+ const placeholder=document.createElement('span');placeholder.className='seen-placeholder';placeholder.setAttribute('aria-hidden','true');
+ open.addEventListener('click',()=>openChat(p,c));seen.addEventListener('click',()=>removeChat(p,c));el.append(open,placeholder);
+ return {el,open,dot,title,detail,seen,placeholder};
+}
+function setProjectUpdates(p,on){
+ p.resumeRevision=(p.resumeRevision||0)+1;const revision=p.resumeRevision;
+ p.paused=!on;p.syncing=!!on;
+ for(const c of p.chats){const key=p.id+'|'+c.id;if(on)previousNoticeStates.set(key,effective(c));else previousNoticeStates.delete(key);}
+ if(!on&&noticeModel?.project.id===p.id)dismissNotice(true);
+ render();
+ if(on)setTimeout(()=>{if(p.resumeRevision!==revision||p.paused||!projects.includes(p))return;p.syncing=false;for(const c of p.chats)previousNoticeStates.set(p.id+'|'+c.id,effective(c));render();},400);
+}
+
+function settingsRow(phase){
+ const el=document.createElement('div');el.className='alert-setting-row';el.dataset.alertType=phase||'compact';
+ const mark=document.createElement('span');
+ if(phase){mark.className='state-dot';mark.style.setProperty('--state-bg',STATES[phase].color);}
+ else {mark.className='project-icon';mark.append(icon('beacon'));}
+ const title=makeInk('row-title',''),toggle=document.createElement('button');toggle.className='switch';toggle.setAttribute('role','switch');
+ toggle.innerHTML='<span class="switch-track"><span class="switch-knob"></span></span>';
+ toggle.addEventListener('click',()=>{
+  if(!phase)compactMenuBar=!compactMenuBar;
+  else if(alertChoices.has(phase)){alertChoices.delete(phase);if(noticeModel?.state===phase)dismissNotice(true);}
+  else alertChoices.add(phase);
+  render();
+ });
+ el.append(mark,title,toggle);return {el,title,toggle};
+}
+function renderSettings(){
+ if(!settingsView){
+  settingsView=document.createElement('div');settingsView.className='alert-settings';
+  const menuSection=document.createElement('section');menuSection.className='settings-section';
+  const menuTitle=document.createElement('h3');menuTitle.className='settings-section-title';menuTitle.dataset.settingsSection='menuBarSection';
+  const compact=settingsRow(null);alertRows.set('compact',compact);const emojiRow=document.createElement('div');emojiRow.className='alert-setting-row';
+  const emojiMark=document.createElement('span'),emojiLabel=makeInk('row-title',t('statusIcon')),picker=document.createElement('button');picker.className='emoji-picker';picker.id='statusEmoji';picker.type='button';
+  picker.addEventListener('click',()=>log('emojiDemoHint'));
+  emojiRow.append(emojiMark,emojiLabel,picker);emojiRow.dataset.emojiRow='true';menuSection.append(menuTitle,emojiRow,compact.el);
+  const alertSection=document.createElement('section');alertSection.className='settings-section';
+  const alertTitle=document.createElement('h3');alertTitle.className='settings-section-title';alertTitle.dataset.settingsSection='alertSettings';alertSection.append(alertTitle);
+  for(const phase of layoutContract.alertTypes){const row=settingsRow(phase);alertRows.set(phase,row);alertSection.append(row.el);}
+  settingsView.append(menuSection,alertSection);list.append(settingsView);
+ }
+ settingsView.hidden=false;
+ ink(settingsView.querySelector('[data-emoji-row] .row-title'),t('statusIcon'));const emojiPicker=settingsView.querySelector('.emoji-picker');emojiPicker.title=t('emojiDemoHint');emojiPicker.setAttribute('aria-label',t('chooseStatusEmoji'));emojiPicker.textContent=statusEmoji;
+ for(const title of settingsView.querySelectorAll('[data-settings-section]'))title.textContent=t(title.dataset.settingsSection);
+ for(const [phase,row] of alertRows){
+  const label=phase==='compact'?t('statusButtonOnly'):phase==='completed'?t('noticeCompleted'):stateLabel(phase);
+  ink(row.title,label);row.toggle.setAttribute('aria-checked',String(phase==='compact'?compactMenuBar:alertChoices.has(phase)));
+  row.toggle.setAttribute('aria-label',phase==='compact'?label:t('alertSwitch',{state:label}));
+ }
+}
+function setSettings(target,instant=false){
+ settingsTarget=target;const epoch=++settingsEpoch,start=getComputedStyle(list).opacity,transform=getComputedStyle(list).transform;
+ settingsAnimation?.cancel();list.style.opacity=start;list.style.pointerEvents='none';
+ $('settingsButton').dataset.settings=String(target);
+ $('settingsButton').setAttribute('aria-label',t(target?'backToProjects':'settings'));
+ $('settingsButton').title=t(target?'backToProjects':'alertSettingsHint');
+ 
+ const reveal=()=>{
+  settingsAnimation=list.animate([{opacity:getComputedStyle(list).opacity,transform:getComputedStyle(list).transform},{opacity:1,transform:'none'}],{duration:instant?0:layoutContract.settingsMotion.in*1000,easing:'cubic-bezier(.23,1,.32,1)',fill:'forwards'});
+  settingsAnimation.finished.catch(()=>{}).then(()=>{if(epoch!==settingsEpoch)return;list.style.opacity='';list.style.transform='';list.style.pointerEvents='';settingsAnimation.cancel();});
+ };
+ if(target===settingsMode){reveal();return;}
+ settingsAnimation=list.animate([{opacity:start,transform},{opacity:0,transform:reduced()?'none':'translateX(-4px)'}],{duration:instant?0:layoutContract.settingsMotion.out*1000,easing:'cubic-bezier(.23,1,.32,1)',fill:'forwards'});
+ settingsAnimation.finished.catch(()=>{}).then(()=>{
+  if(epoch!==settingsEpoch)return;
+  const oldHeight=panel.querySelector('.panel-inner').getBoundingClientRect().height;settingsMode=target;settingsResize?.cancel();renderPanel();
+  const inner=panel.querySelector('.panel-inner'),height=inner.getBoundingClientRect().height;
+  settingsResize=inner.animate([{blockSize:oldHeight+'px'},{blockSize:height+'px'}],{duration:instant||reduced()?0:layoutContract.settingsMotion.resize*1000,easing:'cubic-bezier(.23,1,.32,1)'});
+  list.style.opacity='0';list.style.transform=reduced()?'none':'translateX(4px)';settingsAnimation.cancel();reveal();
+ });
+}
+function renderPanel(){
+ const p=currentProject(),global=globalContext(p),preferences=global&&settingsMode;
+ $('panelIcon').replaceChildren(icon(p.icon));
+ ink($('panelTitle'),projectName(p));ink($('panelSource'),global?t(preferences?'preferences':!enabled?'monitorDisabled':projects.some(x=>x.syncing&&!x.paused)?'syncing':'allProjects'):projectSource(p));
+ panel.querySelector('.panel-header').classList.toggle('is-global',global);
+ $('settingsButton').hidden=!global;$('settingsButton').dataset.settings=String(settingsTarget);
+ $('settingsButton').setAttribute('aria-label',t(settingsTarget?'backToProjects':'settings'));
+ $('settingsButton').title=t(settingsTarget?'backToProjects':'alertSettingsHint');
+ const on=global?enabled:!p.paused;
+ $('monitorSwitch').setAttribute('aria-checked',String(on));
+ $('monitorSwitch').setAttribute('aria-label',global?t('monitorLabel'):t('projectSwitch',{project:projectName(p)}));
+ $('monitorSwitch').title=t(global?(on?'monitorOff':'monitorOn'):(on?'projectOff':'projectOn'));
+ const choices=global?projects.filter(x=>x.chats.length||x.paused):[];
+ const units=global?(compactMenuBar?choices.flatMap(parent=>enabled&&!parent.paused?parent.chats.map(c=>({p:parent,c})):[]):[]):(enabled&&!p.paused?p.chats.map(c=>({p,c})):[]);
+ const ids=new Set(units.map(x=>x.c.id));
+ for(const [id,row]of rows){
+  if(!ids.has(id)&&!preferences){retire(row.el,true);rows.delete(id);}else row.el.hidden=preferences;
+ }
+ list.querySelector('.empty')?.remove();
+ for(const [id,row]of projectControls)if(!choices.some(x=>x.id===id)){retire(row.el,true);projectControls.delete(id);}
+ const ordered=[];
+ for(const [i,choice]of choices.entries()){
+  let row=projectControls.get(choice.id);
+  if(!row){
+   const el=document.createElement('div');el.className='project-control-row group-heading project-name-only';el.dataset.controlProject=choice.id;
+   const mark=document.createElement('span');mark.className='project-icon';mark.append(icon(choice.icon));
+   const copy=document.createElement('div');copy.className='row-copy';
+   const title=makeInk('row-title',projectName(choice)),detail=makeInk('row-detail','');copy.append(title,detail);
+   const toggle=document.createElement('button');toggle.className='switch';toggle.setAttribute('role','switch');
+   toggle.innerHTML='<span class="switch-track"><span class="switch-knob"></span></span>';
+   toggle.addEventListener('click',()=>setProjectUpdates(choice,!!choice.paused));
+   el.append(mark,copy,toggle);list.append(el);row={el,title,detail,toggle};projectControls.set(choice.id,row);
+  }
+  row.el.hidden=preferences;row.el.style.marginBlockStart=i>0?layoutContract.metrics['group-gap']+'px':'0';
+  ink(row.title,projectName(choice));ink(row.detail,projectSource(choice)+' · '+t(choice.paused?'projectPaused':!enabled?'readyToResume':choice.syncing?'syncing':'updatesOn'));
+  row.toggle.setAttribute('aria-checked',String(!choice.paused));
+  row.toggle.setAttribute('aria-label',t('projectSwitch',{project:projectName(choice)}));row.toggle.title=t(choice.paused?'projectOn':'projectOff');
+ }
+ for(const {p:parent,c}of units){
+  let row=rows.get(c.id);if(!row){row=makeRow(parent,c);rows.set(c.id,row);list.append(row.el);pulse(row.el);}
+  row.el.hidden=preferences;row.el.classList.toggle('is-grouped',global);
+  const n=visibleNumber(parent,c);setState(row.dot,parent.syncing?{...c,state:'syncing'}:c);updateBadgeNumber(row.dot,n);ink(row.title,c.title);ink(row.detail,parent.syncing?t('syncing'):stateLabel(effective(c))+' · '+elapsed(c.elapsed));
+  row.open.title=c.title;row.open.setAttribute('aria-label',t('openRow',{n,title:c.title}));row.seen.title=t('seen');row.seen.setAttribute('aria-label',t('seenLabel',{n}));
+  const action=terminal(c.state)&&connected&&!parent.syncing?row.seen:row.placeholder;if(row.el.lastElementChild!==action)row.el.replaceChild(action,row.el.lastElementChild);
+ }
+ if(global&&!preferences){
+  for(const choice of choices){ordered.push(projectControls.get(choice.id).el);if(compactMenuBar&&enabled&&!choice.paused)for(const c of choice.chats)ordered.push(rows.get(c.id).el);}
+ }else if(!global)for(const {c}of units)ordered.push(rows.get(c.id).el);
+ if(preferences){renderSettings();ordered.push(settingsView);}else if(settingsView)settingsView.hidden=true;
+ if(!units.length&&!choices.length&&!preferences){const empty=document.createElement('div');empty.className='empty';empty.textContent=t(enabled?'noChats':'monitorDisabled');list.append(empty);}
+ ensureOrder(list,ordered);scheduleLabels();schedulePlacement();
+}
+function setOpenState(){for(const [id,r]of slots){const open=panel.matches(':popover-open')&&id===activeId;r.el.classList.toggle('is-open',open);r.trigger.setAttribute('aria-expanded',String(open));}}
+function schedulePlacement(){if(!layoutFrame)layoutFrame=requestAnimationFrame(()=>{layoutFrame=0;placePanel();placeNotice();});}
+function placePanel(){
+ const frame=stage.getBoundingClientRect(),r=slots.get(activeId);
+ $('viewportInfo').textContent=t('viewport',{width:Math.round(frame.width),w:innerWidth,h:innerHeight,dpr:devicePixelRatio});
+ if(!r)return;
+ const anchor=r.el.getBoundingClientRect(),styles=getComputedStyle(stage),g=parseFloat(styles.getPropertyValue('--safe-gap'));
+ const width=Math.min(parseFloat(styles.getPropertyValue('--panel-w')),frame.width-2*g),left=Math.max(frame.left+g,Math.min(frame.right-g-width,anchor.left+anchor.width/2-width/2));
+ const top=anchor.bottom+layoutContract.metrics['arrow-h']+layoutContract.metrics['panel-anchor-gap'],bottom=Math.min(frame.bottom,innerHeight)-g;
+ if(bottom-top<80||anchor.bottom<0){closePanel();return;}
+ panel.style.inlineSize=width+'px';panel.style.left=left+'px';panel.style.top=top+'px';
+ panel.style.setProperty('--arrow-x',Math.max(layoutContract.metrics['arrow-inset'],Math.min(width-layoutContract.metrics['arrow-inset'],anchor.left+anchor.width/2-left))+'px');
+ panel.style.setProperty('--available-h',(bottom-top)+'px');
+}
+function closePanel(keyboard=false){if(panel.matches(':popover-open')){panel.classList.toggle('instant',keyboard);panel.hidePopover();}setOpenState();}
+function openChat(p,c){const n=visibleNumber(p,c);editId=p.id;editChat=c.id;log('openedLog',()=>({project:projectName(p),n,title:c.title,source:projectSource(p)}));window.dispatchEvent(new CustomEvent('codex-status:open',{detail:{projectId:p.id,hostId:p.host,threadId:c.id}}));closePanel();renderControls();}
+function removeChat(p,c){const n=visibleNumber(p,c);p.chats=p.chats.filter(x=>x.id!==c.id);if(!p.chats.length)p.next=1;log('seenLog',{n});render();}
+function renderControls(){
+ const projectSelect=$('projectSelect');projectSelect.replaceChildren(...projects.map(p=>new Option(`${projectName(p)} · ${projectSource(p)}`,p.id)));
+ if(!projects.some(p=>p.id===editId))editId=projects[0].id;projectSelect.value=editId;
+ const p=projects.find(p=>p.id===editId),chatSelect=$('chatSelect');
+ chatSelect.replaceChildren(...p.chats.map(c=>new Option(`${visibleNumber(p,c)} · ${c.title}`,c.id)));
+ if(!p.chats.some(c=>c.id===editChat))editChat=p.chats[0]?.id||'';chatSelect.value=editChat;chatSelect.disabled=!p.chats.length;
+ $('stateSelect').value=p.chats.find(c=>c.id===editChat)?.state||'running';$('stateSelect').disabled=!p.chats.length;
+}
+function render(){trackNoticeChanges();renderNotice();$('disconnect').textContent=t(connected?'disconnect':'reconnect');renderMenu();if(panel.matches(':popover-open'))renderPanel();renderControls();schedulePlacement();auditSettled();}
+function currentEdit(){return projects.find(p=>p.id===editId);}
+function add(p){const c={id:'demo-'+serial++,n:p.next++,title:t('newChatTitle',{n:p.chats.length+1}),state:'running',elapsed:0};p.chats.push(c);editChat=c.id;render();}
+$('codexLanguage').addEventListener('change',e=>setCodexLanguage(e.target.value));
+$('settingsGear').append((()=>{const svg=icon('reload');svg.innerHTML='<path d="M3 6h18M3 12h18M3 18h18"/><circle cx="8" cy="6" r="2" fill="#000"/><circle cx="16" cy="12" r="2" fill="#000"/><circle cx="10" cy="18" r="2" fill="#000"/>';return svg;})());
+$('settingsBack').append((()=>{const svg=icon('reload');svg.innerHTML='<path d="m14 5-7 7 7 7"/>';return svg;})());
+$('settingsButton').addEventListener('click',event=>setSettings(!settingsTarget,event.detail===0));
+$('reloadButton').append(icon('reload'));
+$('reloadButton').addEventListener('click',()=>{render();pulse($('reloadButton'));auditSettled();log('reloadLog');});
+let masterResumeRevision=0;
+$('monitorSwitch').addEventListener('click',()=>{const p=currentProject();if(globalContext(p)){
+ const revision=++masterResumeRevision;enabled=!enabled;
+ for(const project of projects){project.resumeRevision=(project.resumeRevision||0)+1;project.syncing=enabled&&!project.paused;}
+ primeNoticeStates();render();log(enabled?'monitorOnLog':'monitorOffLog');
+ if(enabled)setTimeout(()=>{if(masterResumeRevision!==revision||!enabled)return;for(const project of projects)project.syncing=false;primeNoticeStates();render();},400);
+}else setProjectUpdates(p,!!p.paused);});
+$('projectSelect').addEventListener('change',e=>{editId=e.target.value;editChat='';renderControls();});
+$('chatSelect').addEventListener('change',e=>{editChat=e.target.value;renderControls();});
+$('stateSelect').addEventListener('change',e=>{const c=currentEdit().chats.find(c=>c.id===editChat);if(c)c.state=e.target.value;render();});
+$('addChat').addEventListener('click',()=>add(currentEdit()));
+$('finishProject').addEventListener('click',()=>{for(const c of currentEdit().chats)c.state='completed';render();log('completeLog');});
+$('clearSeen').addEventListener('click',()=>{const p=currentEdit();p.chats=p.chats.filter(c=>!terminal(c.state));if(!p.chats.length)p.next=1;render();log('clearLog');});
+$('longName').addEventListener('click',()=>{longNames=!longNames;projects[0].name=longNames?'Aurora · macOS 英语作文批改助手与工程化项目':'Aurora';$('longName').setAttribute('aria-pressed',String(longNames));render();});
+$('fourChats').addEventListener('click',()=>{const p=currentEdit();while(p.chats.length<4)add(p);log('fourLog');});
+$('disconnect').addEventListener('click',()=>{connected=!connected;$('disconnect').setAttribute('aria-pressed',String(!connected));render();log(connected?'connectedLog':'disconnectedLog');});
+$('widthSelect').addEventListener('change',e=>{stage.style.inlineSize=e.target.value==='auto'?'100%':e.target.value+'px';scheduleLabels();schedulePlacement();});
+$('gridToggle').addEventListener('click',()=>{const on=stage.dataset.grid!=='true';stage.dataset.grid=String(on);panel.dataset.grid=String(on);$('gridToggle').setAttribute('aria-pressed',String(on));$('gridToggle').textContent=t(on?'hideGrid':'showGrid');});
+
+// Prototype only: no OS notification permission, native window or real task API.
+const NOTICE_HOLD_MS=layoutContract.notice.holdSeconds*1000;
+let noticeModel=null,noticeTimer=0,noticeHideTimer=0,noticeMeterAnimation=null;
+let previousNoticeStates=new Map();
+function placeNotice(){
+ const el=$('statusNotice');if(!el.matches(':popover-open'))return;
+ const r=stage.getBoundingClientRect(),width=Math.min(340,r.width-24,innerWidth-24);
+ el.style.inlineSize=width+'px';
+ el.style.left=Math.max(12,Math.min(innerWidth-width-12,r.right-width-12))+'px';
+ el.style.top=Math.max(12,Math.min(innerHeight-el.offsetHeight-12,r.top+layoutContract.metrics['bar-h']+12))+'px';
+}
+function renderNotice(){
+ if(!noticeModel)return;
+ const {project:p,chat:c,state}=noticeModel,n=visibleNumber(p,c),label=state==='completed'?t('noticeCompleted'):stateLabel(state);
+ if(n<1){dismissNotice();return;}
+ $('noticeIcon').replaceChildren(icon(p.icon));$('noticeProject').textContent=t('noticeProject',{project:projectName(p),n});
+ $('noticeState').textContent=label;$('noticeTitle').textContent=c.title;$('noticeTitle').title=c.title;
+ updateBadgeNumber($('noticeBadge'),n);const color=STATES[state];$('noticeBadge').style.setProperty('--state-bg',color.color);$('noticeBadge').style.setProperty('--state-fg',color.fg);
+ $('statusNotice').setAttribute('aria-label',t('noticeAria',{project:projectName(p),n,title:c.title,state:label}));
+}
+function dismissNotice(immediate=false){
+ clearTimeout(noticeTimer);clearTimeout(noticeHideTimer);noticeMeterAnimation?.cancel();
+ const el=$('statusNotice');el.dataset.open='false';el.dataset.dismissingAt=String(Date.now());
+ const finish=()=>{if(el.matches(':popover-open'))el.hidePopover();el.dataset.hiddenAt=String(Date.now());noticeModel=null;};
+ if(immediate){finish();noticeModel=null;}else noticeHideTimer=setTimeout(finish,parseFloat(getComputedStyle(el).getPropertyValue('--notice-duration')));
+}
+function showNotice(project,chat,state){
+ clearTimeout(noticeTimer);clearTimeout(noticeHideTimer);noticeMeterAnimation?.cancel();
+ const el=$('statusNotice'),wasOpen=el.matches(':popover-open');el.style.setProperty('--notice-duration',layoutContract.notice.motionSeconds*1000+'ms');
+ noticeModel={project,chat,state};renderNotice();
+ el.dataset.shownAt=String(Date.now());el.dataset.chatId=chat.id;el.dataset.state=state;delete el.dataset.hiddenAt;delete el.dataset.dismissingAt;
+ if(!wasOpen){el.dataset.open='false';el.showPopover();placeNotice();void el.offsetWidth;}
+ el.dataset.open='true';placeNotice();
+ if(!reduced())noticeMeterAnimation=$('noticeMeter').animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{duration:NOTICE_HOLD_MS,easing:'linear',fill:'forwards'});
+ noticeTimer=setTimeout(()=>dismissNotice(),NOTICE_HOLD_MS);
+}
+function primeNoticeStates(){previousNoticeStates=new Map(projects.flatMap(p=>p.chats.map(c=>[p.id+'|'+c.id,effective(c)])));dismissNotice(true);}
+function trackNoticeChanges(){
+ if(!enabled){primeNoticeStates();return;}
+ const next=new Map();
+ for(const p of projects.filter(p=>!p.paused&&!p.syncing))for(const c of p.chats){const key=p.id+'|'+c.id,state=effective(c);next.set(key,state);if((!previousNoticeStates.has(key)||previousNoticeStates.get(key)!==state)&&alertChoices.has(state))showNotice(p,c,state);}
+ previousNoticeStates=next;
+ if(noticeModel&&!noticeModel.project.chats.some(c=>c.id===noticeModel.chat.id))dismissNotice();
+}
+$('openNotice').addEventListener('click',()=>{if(!noticeModel)return;const {project,chat}=noticeModel;openChat(project,chat);dismissNotice();});
+$('dismissNotice').addEventListener('click',e=>{e.stopPropagation();dismissNotice();});
+$('demoNotice').addEventListener('click',()=>{const p=currentEdit(),c=p.chats.find(c=>c.id===editChat)||p.chats[0];if(!c){add(p);return;}c.state=c.state==='running'?'approval':c.state==='approval'?'completed':'running';render();});
+
+function audit(){
+ const errors=[];let checks=0;const near=(a,b,label)=>{checks++;if(Math.abs(a-b)>.55)errors.push(t('difference',{label,n:Math.abs(a-b).toFixed(2)}));};
+ let menuBaseline=null;
+ for(const [id,r]of slots){const a=r.el.getBoundingClientRect(),b=r.cap.getBoundingClientRect();near(a.y+a.height/2,b.y+b.height/2,id+' '+t('outerCenter'));
+  for(const child of [...(id==='control'?[]:[r.trigger.querySelector('.project-icon')]),...(id==='global-control'?[]:[r.name]),...r.badgeMap.values()]){const c=child.getBoundingClientRect();near(b.y+b.height/2,c.y+c.height/2,id+' '+t('innerCenter'));}
+  if(id==='global-control')continue;
+  const baseline=r.name.querySelector('.baseline-marker').getBoundingClientRect().y;if(menuBaseline!==null)near(menuBaseline,baseline,id+' '+t('sharedBaseline'));else menuBaseline=baseline;}
+ if(panel.matches(':popover-open')){
+  if(settingsView&&!settingsView.hidden)for(const r of alertRows.values()){const a=r.title.getBoundingClientRect(),b=r.toggle.getBoundingClientRect();near(a.y+a.height/2,b.y+b.height/2,t('rowCenter'));}
+  const h=panel.querySelector('.panel-header').getBoundingClientRect();for(const el of panel.querySelector('.panel-header').children){if(el.hidden)continue;const r=el.getBoundingClientRect();near(h.y+h.height/2,r.y+r.height/2,t('headerCenter'));}
+  for(const r of projectControls.values()){if(r.el.hidden)continue;const copy=r.el.querySelector('.row-copy').getBoundingClientRect(),toggle=r.toggle.getBoundingClientRect();near(copy.y+copy.height/2,toggle.y+toggle.height/2,t('rowCenter'));}
+  for(const r of rows.values()){if(r.el.hidden)continue;const a=r.dot.getBoundingClientRect(),b=r.el.querySelector('.row-copy').getBoundingClientRect();near(a.y+a.height/2,b.y+b.height/2,t('rowCenter'));}
+  const f=stage.getBoundingClientRect(),p=panel.getBoundingClientRect();checks++;if(p.left<f.left+11||p.right>f.right-11||p.bottom>f.bottom-10)errors.push(t('safeAreaError'));
+ }
+ const result={ok:errors.length===0,checks,errors,stageWidth:stage.getBoundingClientRect().width,panelOpen:panel.matches(':popover-open')};
+ $('auditResult').dataset.ok=String(result.ok);$('auditResult').textContent=result.ok?t('auditPassed',{n:checks,suffix:t(result.panelOpen?'auditOpen':'auditClosed')}):t('auditFailed',{errors:errors.join('; ')});
+ return result;
+}
+function auditSettled(){const epoch=++auditEpoch;delete $('auditResult').dataset.ok;$('auditResult').textContent=t('checking');Promise.all(document.getAnimations().filter(a=>!a.effect?.target?.closest('.status-notice')).map(a=>a.finished.catch(()=>{}))).then(()=>requestAnimationFrame(()=>{if(epoch===auditEpoch)audit();}));}
+$('auditButton').addEventListener('click',auditSettled);
+$('resetButton').addEventListener('click',()=>reset());
+function reset(){masterResumeRevision++;settingsEpoch++;settingsAnimation?.cancel();settingsResize?.cancel();settingsMode=false;settingsTarget=false;compactMenuBar=false;statusEmoji='🔦';alertChoices.clear();layoutContract.alertTypes.forEach(x=>alertChoices.add(x));list.style.opacity='';list.style.transform='';list.style.pointerEvents='';closePanel(true);projects=data();enabled=true;connected=true;primeNoticeStates();activeId='aurora';editId='aurora';editChat='local-1';serial=4;longNames=false;log('initialLog');applyCopy();$('longName').setAttribute('aria-pressed','false');$('disconnect').setAttribute('aria-pressed','false');render();const r=slots.get('aurora');lastInvoker=r.trigger;renderPanel();placePanel();panel.classList.add('instant');panel.showPopover({source:r.trigger});requestAnimationFrame(()=>{panel.classList.remove('instant');setOpenState();scheduleLabels();auditSettled();});}
+panel.addEventListener('toggle',e=>{setOpenState();if(e.newState==='open')schedulePlacement();});
+panel.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){panel.classList.add('instant');lastInvoker?.focus({preventScroll:true});return;}
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+  const buttons=[...list.querySelectorAll('.row-open,.seen,.project-control-row .switch')];if(!buttons.length)return;e.preventDefault();let i=buttons.indexOf(document.activeElement);i=(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[i].focus({preventScroll:true});buttons[i].scrollIntoView({block:'nearest'});
+ }
+});
+const anchorObserver=new ResizeObserver(schedulePlacement);
+new ResizeObserver(()=>{scheduleLabels();schedulePlacement();auditSettled();}).observe(stage);
+menu.addEventListener('scroll',schedulePlacement,{passive:true});
+addEventListener('resize',()=>{scheduleLabels();schedulePlacement();});
+addEventListener('scroll',schedulePlacement,{passive:true});
+document.fonts.ready.then(scheduleLabels);
+window.layoutBenchmark={audit,getState:()=>structuredClone({projects,enabled,connected,activeId,codexLanguage,interfaceLanguage:interfaceLanguage()}),setCodexLanguage,reset};
+reset();
+</script>
+</body>
+</html>

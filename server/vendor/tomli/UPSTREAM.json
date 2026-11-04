@@ -1,0 +1,9 @@
+{
+  "name": "tomli",
+  "version": "2.5.0",
+  "source": "https://pypi.org/project/tomli/2.5.0/",
+  "wheel": "tomli-2.5.0-py3-none-any.whl",
+  "sha256": "32a7b79ac57a2e83670ce329ccf675798bc5a2094783a63676866b70503f2e2b",
+  "license": "MIT",
+  "requiresPython": ">=3.8"
+}

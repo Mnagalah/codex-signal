@@ -1,0 +1,8 @@
+{
+  "os": "macOS",
+  "architecture": "arm64",
+  "deploymentTarget": "14.0",
+  "pythonMinimum": "3.10",
+  "distribution": "community-prerelease-ad-hoc",
+  "runtimeBundled": false
+}

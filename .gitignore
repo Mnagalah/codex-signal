@@ -1,0 +1,7 @@
+native/.build/
+__pycache__/
+*.pyc
+.DS_Store
+dist/
+.test-data/
+# bin/codex-menu-bar is intentionally included for a prebuilt Git marketplace.
