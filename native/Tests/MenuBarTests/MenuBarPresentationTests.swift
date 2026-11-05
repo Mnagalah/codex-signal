@@ -14,6 +14,8 @@ private func project(_ id:String,kind:String?=nil) -> Project {
     #expect(MenuBarPresentation.creationOrder(global:global,projects:[a,b,project("new")],compact:false).first == global)
 }
 @Test @MainActor func projectVisibilityRetargetsFromPresentationAndCancelsOldRemoval() throws {
+    // Test normal-motion interpolation independently of the machine's setting.
+    let prior=Motion.reduceMotionOverride;Motion.reduceMotionOverride=false;defer { Motion.reduceMotionOverride=prior }
     var p=project("p");p.threads=[Chat(id:"stable-id",index:1,title:"原始聊天",since:0,canMarkSeen:false,status:"running",detail:"进行中")]
     let view=CapsuleView(project:p,height:22,detail:"",onEvent:{_,_ in})
     var staleRemoval=false
@@ -40,6 +42,7 @@ private func project(_ id:String,kind:String?=nil) -> Project {
 }
 
 @Test @MainActor func unchangedBackingNotificationsDoNotSnapOrFinishProjectMotion() {
+    let prior=Motion.reduceMotionOverride;Motion.reduceMotionOverride=false;defer { Motion.reduceMotionOverride=prior }
     let view=CapsuleView(project:project("p"),height:22,detail:"",onEvent:{_,_ in})
     view.setVisible(false,animated:false);view.setVisible(true)
     RunLoop.main.run(until:Date().addingTimeInterval(0.06))
