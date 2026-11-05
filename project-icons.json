@@ -1,0 +1,126 @@
+{
+  "book": {
+    "linux": "book",
+    "macos": "book.closed"
+  },
+  "brain": {
+    "linux": "brain",
+    "macos": "brain"
+  },
+  "briefcase": {
+    "linux": "briefcase",
+    "macos": "briefcase"
+  },
+  "camera": {
+    "linux": "camera",
+    "macos": "camera"
+  },
+  "chart": {
+    "linux": "chart-column",
+    "macos": "chart.bar"
+  },
+  "chart-bar": {
+    "linux": "chart-column",
+    "macos": "chart.bar"
+  },
+  "code": {
+    "linux": "code",
+    "macos": "chevron.left.forwardslash.chevron.right"
+  },
+  "code-2": {
+    "linux": "code-xml",
+    "macos": "chevron.left.forwardslash.chevron.right"
+  },
+  "database": {
+    "linux": "database",
+    "macos": "externaldrive"
+  },
+  "file-text": {
+    "linux": "file-text",
+    "macos": "doc.text"
+  },
+  "flask": {
+    "linux": "flask-conical",
+    "macos": "flask"
+  },
+  "folder": {
+    "linux": "folder",
+    "macos": "folder"
+  },
+  "function": {
+    "linux": "square-function",
+    "macos": "function"
+  },
+  "gamepad": {
+    "linux": "gamepad",
+    "macos": "gamecontroller"
+  },
+  "gamepad-2": {
+    "linux": "gamepad-2",
+    "macos": "gamecontroller"
+  },
+  "globe": {
+    "linux": "globe",
+    "macos": "globe"
+  },
+  "graduation-cap": {
+    "linux": "graduation-cap",
+    "macos": "graduationcap"
+  },
+  "health": {
+    "linux": "stethoscope",
+    "macos": "stethoscope"
+  },
+  "heart": {
+    "linux": "heart",
+    "macos": "heart"
+  },
+  "lightbulb": {
+    "linux": "lightbulb",
+    "macos": "lightbulb"
+  },
+  "message-circle": {
+    "linux": "messages-square",
+    "macos": "bubble.left.and.bubble.right"
+  },
+  "messages-square": {
+    "linux": "messages-square",
+    "macos": "bubble.left.and.bubble.right"
+  },
+  "music": {
+    "linux": "music",
+    "macos": "music.note"
+  },
+  "palette": {
+    "linux": "palette",
+    "macos": "paintpalette"
+  },
+  "power": {
+    "linux": "power",
+    "macos": "power"
+  },
+  "rocket": {
+    "linux": "rocket",
+    "macos": "paperplane"
+  },
+  "settings": {
+    "linux": "settings",
+    "macos": "gearshape"
+  },
+  "star": {
+    "linux": "star",
+    "macos": "star"
+  },
+  "stethoscope": {
+    "linux": "stethoscope",
+    "macos": "stethoscope"
+  },
+  "terminal": {
+    "linux": "terminal",
+    "macos": "terminal"
+  },
+  "wrench": {
+    "linux": "wrench",
+    "macos": "wrench"
+  }
+}

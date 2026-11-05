@@ -5,7 +5,7 @@
   "shell-version": [
     "42"
   ],
-  "version": 204,
+  "version": 205,
   "settings-schema": "org.gnome.shell.extensions.codex-signal",
   "session-modes": [
     "user"

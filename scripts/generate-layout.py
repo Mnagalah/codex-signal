@@ -9,6 +9,8 @@ import re
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TARGET = ROOT / 'native/Sources/MenuBar/LayoutContract.generated.swift'
 COPY_TARGET = ROOT / 'native/Sources/MenuBar/InterfaceCopy.generated.swift'
+BACKEND_COPY_TARGET = ROOT / 'server/interface-copy.generated.json'
+ICONS_TARGET = ROOT / 'native/Sources/MenuBar/ProjectIcons.generated.swift'
 
 
 def read_contract(root=ROOT):
@@ -71,15 +73,27 @@ def main():
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
     result = generated(read_contract())
-    copy = generated_copy(read_copy())
+    values = read_copy()
+    copy = generated_copy(values)
+    backend_copy = json.dumps(values, ensure_ascii=False, sort_keys=True, indent=2) + '\n'
+    icons = json.loads((ROOT / 'project-icons.json').read_text())
+    icon_source = '// Generated from project-icons.json. Do not edit.\nenum CompiledProjectIcons {\n    static let symbols: [String: String] = [\n'
+    icon_source += ''.join('        ' + json.dumps(k) + ': ' + json.dumps(v['macos']) + ',\n' for k, v in sorted(icons.items()))
+    icon_source += '    ]\n}\n'
     if args.check:
         if not TARGET.is_file() or TARGET.read_text() != result:
             raise SystemExit('Native grid is stale; run scripts/generate-layout.py or scripts/build.sh')
         if not COPY_TARGET.is_file() or COPY_TARGET.read_text() != copy:
             raise SystemExit('Native interface copy is stale; rebuild')
+        if not BACKEND_COPY_TARGET.is_file() or BACKEND_COPY_TARGET.read_text() != backend_copy:
+            raise SystemExit('Backend interface copy is stale; run scripts/generate-layout.py')
+        if not ICONS_TARGET.is_file() or ICONS_TARGET.read_text() != icon_source:
+            raise SystemExit('Native project icons are stale; run scripts/generate-layout.py')
     else:
         TARGET.write_text(result)
         COPY_TARGET.write_text(copy)
+        BACKEND_COPY_TARGET.write_text(backend_copy)
+        ICONS_TARGET.write_text(icon_source)
     print('Shared HTML/native grid contract is current')
 
 

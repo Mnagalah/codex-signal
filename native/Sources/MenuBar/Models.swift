@@ -1,5 +1,11 @@
 import AppKit
 
+struct AdapterHealth: Codable, Sendable {
+    var status: String
+    var detail: String
+    var requiresAttention: Bool { status == "protocol-error" || status == "disconnected" }
+}
+
 struct MonitorState: Codable, Sendable {
     var connected: Bool
     var detail: String
@@ -10,12 +16,21 @@ struct MonitorState: Codable, Sendable {
     var compactMenuBar: Bool? = nil
     var statusEmoji: String? = nil
     var notificationStates: [String]? = nil
+    var health: AdapterHealth? = nil
     var summaryStatus: String? {
         guard enabled != false else { return nil }
         let states=Set((projectControls ?? projects).filter { $0.updatesEnabled != false }.flatMap { $0.threads.map { $0.status == "syncing" ? "syncing" : (connected ? $0.status : "unknown") } })
-        return Layout.specification.statusPriority.first { states.contains($0) } ?? (states.contains("syncing") ? "syncing" : nil)
+        let phase = Layout.specification.statusPriority.first { states.contains($0) }
+        if health?.requiresAttention == true, !["failed", "approval", "input"].contains(phase ?? "") { return "unknown" }
+        return phase ?? (states.contains("syncing") ? "syncing" : nil)
     }
     var language: InterfaceLanguage { InterfaceLanguage(code: uiLanguage ?? "zh-CN") }
+    var presentationDetail: String {
+        if enabled == false { return language.text("monitorDisabled") }
+        if let health, health.requiresAttention { return health.detail }
+        if (projectControls ?? projects).contains(where: { $0.syncing == true && $0.updatesEnabled != false }) { return language.text("syncing") }
+        return connected && projects.isEmpty ? language.text("noChats") : detail
+    }
 }
 
 struct Project: Codable, Sendable, Equatable {
@@ -31,6 +46,7 @@ struct Project: Codable, Sendable, Equatable {
     var summaryStatus: String? = nil
     var summaryCount: Int? = nil
     var syncing: Bool? = nil
+    var healthDetail: String? = nil
     var isStatusControl: Bool { id == "control" || kind == "status-control" || kind == "global-control" }
     func displayName(in language: InterfaceLanguage) -> String {
         if isStatusControl { return language.text("statusTitle") }
@@ -128,33 +144,6 @@ enum ProjectIcon {
     // Marker identity follows Codex. Emoji is preserved verbatim; named markers
     // use the corresponding SF Symbol, not the project's decorative color.
     static func symbol(_ marker: String) -> String {
-        switch marker {
-        case "graduation-cap": "graduationcap"
-        case "health", "stethoscope": "stethoscope"
-        case "terminal": "terminal"
-        case "book": "book.closed"
-        case "function": "function"
-        case "flask": "flask"
-        case "code", "code-2": "chevron.left.forwardslash.chevron.right"
-        case "briefcase": "briefcase"
-        case "chart", "chart-bar": "chart.bar"
-        case "globe": "globe"
-        case "heart": "heart"
-        case "lightbulb": "lightbulb"
-        case "rocket": "paperplane"
-        case "brain": "brain"
-        case "palette": "paintpalette"
-        case "music": "music.note"
-        case "camera": "camera"
-        case "gamepad", "gamepad-2": "gamecontroller"
-        case "message-circle": "bubble.left.and.bubble.right"
-        case "settings": "gearshape"
-        case "wrench": "wrench"
-        case "power": "power"
-        case "star": "star"
-        case "database": "externaldrive"
-        case "file-text": "doc.text"
-        default: "folder"
-        }
+        CompiledProjectIcons.symbols[marker] ?? "folder"
     }
 }

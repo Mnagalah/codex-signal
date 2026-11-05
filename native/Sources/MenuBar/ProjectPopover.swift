@@ -579,7 +579,13 @@ final class ProjectPanelView: NSView {
     }
 
     var headerSubtitle:String {
-        project.isStatusControl ? language.text(showingAlerts ? "preferences" : !monitorEnabled ? "monitorDisabled" : project.syncing == true ? "syncing" : "allProjects") : project.locationLabel(in:language)
+        if project.isStatusControl {
+            if showingAlerts { return language.text("preferences") }
+            if !monitorEnabled { return language.text("monitorDisabled") }
+            if project.healthDetail != nil { return language.text("statusUnavailable") }
+            return language.text(project.syncing == true ? "syncing" : "allProjects")
+        }
+        return project.locationLabel(in:language)
     }
 
     override func draw(_ dirtyRect: NSRect) {

@@ -3,7 +3,7 @@ const Main=imports.ui.main, PanelMenu=imports.ui.panelMenu, PopupMenu=imports.ui
 const ExtensionUtils=imports.misc.extensionUtils, ByteArray=imports.byteArray;
 const Me=ExtensionUtils.getCurrentExtension(), Core=Me.imports.core.API, Client=Me.imports.client.Client;
 function jsonResource(name) {return JSON.parse(ByteArray.toString(GLib.file_get_contents(GLib.build_filenamev([Me.path,name]))[1]));}
-const Contract=jsonResource('contract.json'), Copy=jsonResource('copy.json'), Metrics=Contract.metrics;
+const Contract=jsonResource('contract.json'), Copy=jsonResource('copy.json'), ProjectIcons=jsonResource('project-icons.json'), Metrics=Contract.metrics;
 
 class Motion {
     constructor(reduced) {this.reduced=reduced;this.timers=new Map();}
@@ -62,10 +62,8 @@ function button(child,name,action) {
 function interactive(actor,value) {for(const c of actor.get_children())interactive(c,value);if(actor._signalAction){actor.reactive=value;actor.can_focus=value;}}
 function projectIcon(p,size) {
     if(p.markerType==='emoji')return label(p.marker,'signal-emoji');
-    const names={'graduation-cap':'cap',stethoscope:'health',heart:'heart','message-circle':'chat','messages-square':'chat'};
-    const name=names[p.marker];
-    if(name)return new St.Icon({gicon:new Gio.FileIcon({file:Gio.File.new_for_path(GLib.build_filenamev([Me.path,'icons',name+'-symbolic.svg']))}),icon_size:size,y_align:Clutter.ActorAlign.CENTER});
-    return new St.Icon({icon_name:p.marker==='wrench'?'applications-engineering-symbolic':'folder-symbolic',icon_size:size,y_align:Clutter.ActorAlign.CENTER});
+    const name=ProjectIcons[p.marker] || ProjectIcons.folder;
+    return new St.Icon({gicon:new Gio.FileIcon({file:Gio.File.new_for_path(GLib.build_filenamev([Me.path,'icons',name+'-symbolic.svg']))}),icon_size:size,y_align:Clutter.ActorAlign.CENTER});
 }
 function smallIcon(name) {return new St.Icon({icon_name:name,icon_size:Metrics['control-icon'],y_align:Clutter.ActorAlign.CENTER});}
 
@@ -131,7 +129,7 @@ var SignalIndicator=GObject.registerClass(class SignalIndicator extends PanelMen
         if(this._destroyed)return;
         const state=this._state,phase=this._online?Core.summary(state,Contract.statusPriority):'unknown';
         this._globalIcon.text=state.statusEmoji || '🔦';this._motion.color(this._globalButton,phase,true);
-        const count=Core.active(state).reduce((n,p)=>n+p.threads.length,0),description=!this._online?this._t('extensionOffline'):state.enabled===false?this._t('monitorDisabled'):phase?this._t('aggregateStatus',{status:this._t(phase),n:count}):this._t('noChats');
+        const count=Core.active(state).reduce((n,p)=>n+p.threads.length,0),description=!this._online?this._t('extensionOffline'):state.enabled===false?this._t('monitorDisabled'):Core.healthDetail(state) || (phase?this._t('aggregateStatus',{status:this._t(phase),n:count}):this._t('noChats'));
         this._globalButton.accessible_name=this._t('statusTitle')+' · '+description;
         const projects=this._online?Core.menuProjects(state):[],live=new Set(projects.map(p=>p.id));
         for(const [id,slot] of this._slots) if(!live.has(id) && !slot.actor._leaving) {
@@ -193,7 +191,7 @@ var SignalIndicator=GObject.registerClass(class SignalIndicator extends PanelMen
     _renderHeader() {
         const p=Core.controls(this._state).find(p=>p.id===this._selected),isGlobal=this._selected==='global-control';
         this._title.text=isGlobal?this._t('statusTitle'):p?Core.projectName(Copy,this._state,p):this._t('pendingProject');
-        const syncing=Core.active(this._state).some(p=>p.syncing),source=isGlobal?this._settingsMode?this._t('preferences'):!this._online?this._t('extensionOffline'):this._state.enabled===false?this._t('monitorDisabled'):syncing?this._t('syncing'):this._t('allProjects'):p?.hostId && p.hostId!=='local'?this._t('remote',{host:p.hostLabel || p.hostId}):this._t('local');
+        const syncing=Core.active(this._state).some(p=>p.syncing),source=isGlobal?this._settingsMode?this._t('preferences'):!this._online?this._t('extensionOffline'):this._state.enabled===false?this._t('monitorDisabled'):Core.healthDetail(this._state)?this._t('statusUnavailable'):syncing?this._t('syncing'):this._t('allProjects'):p?.hostId && p.hostId!=='local'?this._t('remote',{host:p.hostLabel || p.hostId}):this._t('local');
         this._subtitle.text=source;this._headerIcon.set_child(isGlobal?label(this._state.statusEmoji || '🔦','signal-emoji'):projectIcon(p || {},Metrics['header-icon']));
         this._master._setValue(isGlobal?this._state.enabled!==false:p?.updatesEnabled!==false);this._master.accessible_name=isGlobal?this._t('monitorLabel'):this._t('projectSwitch',{project:p?.name || ''});
         this._settingsButton.visible=isGlobal;this._settingsButton.accessible_name=this._t(this._settingsTarget?'backToProjects':'settings');this._settingsButton.set_child(smallIcon(this._settingsTarget?'go-previous-symbolic':'emblem-system-symbolic'));this._reload.accessible_name=this._t('productionReload');
@@ -211,7 +209,7 @@ var SignalIndicator=GObject.registerClass(class SignalIndicator extends PanelMen
         if(!this._routeAnimating){this._body.opacity=255;this._body.translation_y=0;}
         let units=this._online?Core.rows(this._state,this._selected):[];
         if(this._state.uiError)units=[{kind:'message',key:'error',message:this._state.uiError},...units];
-        if(!units.length)units=[{kind:'message',key:'empty',message:this._online?this._state.enabled===false?this._t('monitorDisabled'):this._state.connected?this._t('noChats'):this._state.detail:this._t('extensionOffline')}];
+        if(!units.length)units=[{kind:'message',key:'empty',message:this._online?this._state.enabled===false?this._t('monitorDisabled'):Core.healthDetail(this._state) || (this._state.connected?this._t('noChats'):this._state.detail):this._t('extensionOffline')}];
         const live=new Set(units.map(u=>u.key));this._focus=[];
         for(const [key,row] of this._rows)if(!live.has(key) && !row.actor._leaving){interactive(row.actor,false);this._motion.size(row.actor,false,true,()=>{if(row.actor._leaving){this._motion.forget(row.actor);row.actor.destroy();this._rows.delete(key);}});}
         units.forEach((unit,index)=>{

@@ -38,7 +38,11 @@ codex plugin add codex-menu-status@codex-signal
 
 Click Signal's refresh button to hot-load the **already installed** new backend/renderer while retaining its MCP transport and records. Verify the effective version and readiness. This does not restart Codex. The GNOME companion is a separate Shell component; update it explicitly with `install-gnome.sh`, which disables only Signal's extension and keeps a recovery copy. No Shell restart is automated.
 
-After a repository exists, it may be registered with its **actual** URL and `--ref v0.2.4`. Do not run a placeholder repository URL. A Git marketplace release commit must include a platform-appropriate helper/manifest; Mac is the default root package. Ubuntu users should use the beta platform ZIP, whose `platform.json` is generated for Linux. Attaching a ZIP to GitHub does not make a plain Git marketplace entry download it automatically. [Official marketplace guide](https://developers.openai.com/plugins/build/plugins).
+Installed version directories are immutable: increment the plugin version before installing changed code. Refreshing an unchanged version reuses its factory. Hot reload transfers recently observed chat identities in memory, including read chats that have left the visible list; it does not scan or persist the account's history.
+
+Maintainers keeping a separate local marketplace identity should generate it with `python3 scripts/stage-deployment.py --destination /path/to/deployment --marketplace sample-local-source`. This exports the same business code and version with only marketplace/diagnostic configuration differences. It does not install, restart anything, or touch user records. Do not enable a second marketplace edition over the existing data store.
+
+After a repository exists, it may be registered with its **actual** URL and `--ref v0.2.5`. Do not run a placeholder repository URL. A Git marketplace release commit must include a platform-appropriate helper/manifest; Mac is the default root package. Ubuntu users should use the beta platform ZIP, whose `platform.json` is generated for Linux. Attaching a ZIP to GitHub does not make a plain Git marketplace entry download it automatically. [Official marketplace guide](https://developers.openai.com/plugins/build/plugins).
 
 ## Remove only Signal
 

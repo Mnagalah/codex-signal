@@ -212,6 +212,14 @@ class WatchRegistry:
             self.acknowledged[thread.key] = turn.get("turnId", turn.get("id", ""))
             self.entries.pop(thread.key, None)
 
+    def mark_unread(self, thread: ThreadState) -> None:
+        # Only an explicit desktop unread edge rearms this known turn. Ordinary
+        # (possibly stale) unread snapshots must not undo a local acknowledgement.
+        turn = thread.latest_turn
+        turn_id = turn.get("turnId") or turn.get("id")
+        if turn_id and self.acknowledged.get(thread.key) == turn_id:
+            self.acknowledged.pop(thread.key)
+
     def update(self, states: dict[str, ThreadState], projects: dict, connected: bool, *, language="zh-CN") -> list[dict]:
         now = time.time()
         for tid, state in states.items():

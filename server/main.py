@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import fcntl
-import importlib.util
 import json
 import os
 import pathlib
@@ -16,7 +15,6 @@ import subprocess
 import sys
 import threading
 import time
-import types
 from urllib.parse import urlencode
 
 if __package__:
@@ -26,6 +24,7 @@ if __package__:
     from .localization import DesktopLanguage, connection_text, text
     from .notifications import NoticeTracker
     from .resume_probe import ProjectResumeProbe
+    from .lifecycle import load_plugin_class, prune_payload_modules
     from . import runtime_paths
 else:
     from desktop import DesktopIPC, DesktopMetadata
@@ -34,10 +33,11 @@ else:
     from localization import DesktopLanguage, connection_text, text
     from notifications import NoticeTracker
     from resume_probe import ProjectResumeProbe
+    from lifecycle import load_plugin_class, prune_payload_modules
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 RESUME_SNAPSHOT_WAIT = 5.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
@@ -69,7 +69,8 @@ def load_json(path: pathlib.Path) -> dict:
 
 class Plugin:
     def __init__(self, args, *, events=None, lock=None):
-        home = pathlib.Path.home()
+        if __package__:
+            prune_payload_modules(__package__)
         self.args = args
         self.events: queue.Queue = events if events is not None else queue.Queue()
         self.data = runtime_paths.data_directory()
@@ -96,6 +97,8 @@ class Plugin:
         self.started = time.monotonic()
         self.refresh_pending = False
         self.pending_discovery: set[str] = set()
+        self.pending_unread: set[str] = set()
+        self.protocol_errors: set[tuple[str, str]] = set()
         self.event_counts: dict[str, int] = {}
         self.ui_error: str | None = None
         self.ui_ready = False
@@ -206,6 +209,7 @@ class Plugin:
         self.resume_connecting = False
         self.resume_snapshots.clear()
         self.connected, self.detail = False, detail
+        self.protocol_errors.clear()
         if self.ipc:
             self.ipc.close()
         self.ipc = None
@@ -230,11 +234,38 @@ class Plugin:
         if message.get("type") != "broadcast":
             return
         method, params = message.get("method"), message.get("params", {})
+        protocols = {"thread-stream-state-changed": ("stream", DesktopIPC.STREAM_VERSION),
+                     "thread-read-state-changed": ("read", DesktopIPC.READ_VERSION)}
+        if method in protocols:
+            channel, expected = protocols[method]
+            if not isinstance(params, dict) or message.get("version") != expected:
+                host = params.get("hostId") if isinstance(params, dict) else None
+                tid = params.get("conversationId") if isinstance(params, dict) else None
+                key = thread_key(host, tid) if isinstance(host, str) and isinstance(tid, str) and UUID.fullmatch(tid) else "*"
+                if key != "*" and self.project_paused(key):
+                    return
+                self.protocol_errors.add((key, channel))
+                if channel == "stream" and key in self.states:
+                    self.states[key].valid = False
+                    self.resume_snapshots.pop(key, None)
+                self.detail = "Codex 状态协议已变化，请更新插件"
+                self.refresh_pending = True
+                return
+        if not isinstance(params, dict):
+            return
         tid, host = params.get("conversationId"), params.get("hostId")
         if not isinstance(host, str) or not host or not isinstance(tid, str) or not UUID.fullmatch(tid):
             return
         key = thread_key(host, tid)
         if self.project_paused(key):
+            # Keep only explicit intent in memory while the displayed/saved
+            # project stays frozen. Apply it to a fresh snapshot on resume.
+            if (method == "thread-read-state-changed" and key in self.states
+                    and message.get("version") == DesktopIPC.READ_VERSION):
+                if params.get("hasUnreadTurn") is True:
+                    self.pending_unread.add(key)
+                elif params.get("hasUnreadTurn") is False:
+                    self.pending_unread.discard(key)
             return
         if method == "thread-stream-following-changed" and params.get("following") is True:
             if message.get("sourceClientId") != ipc.client_id and (host, tid) not in ipc.following:
@@ -244,21 +275,31 @@ class Plugin:
                     ipc.follow(tid, host_id=host)
         elif method == "thread-stream-state-changed":
             state = self.states.setdefault(key, ThreadState(tid, host_id=host))
-            if message.get("version") != DesktopIPC.STREAM_VERSION:
-                state.valid = False
-                self.resume_snapshots.pop(key, None)
-                self.detail = "Codex 状态协议已变化，请更新插件"
-                return
+            self.protocol_errors.discard((key, "stream"))
+            self.protocol_errors.discard(("*", "stream"))
+            if not self.protocol_errors and self.detail == "Codex 状态协议已变化，请更新插件":
+                self.detail = "已连接当前 Codex 桌面"
             if not state.consume(params.get("change", {}), message.get("sourceClientId")):
                 self.refresh_pending = True
+            if state.valid and key in self.pending_unread:
+                if state.metadata.get("hasUnreadTurn") is True:
+                    self.registry.mark_unread(state)
+                self.pending_unread.discard(key)
             # The projection has now discarded every transcript body.
         elif method == "thread-read-state-changed":
             state = self.states.get(key)
             if message.get("version") == DesktopIPC.READ_VERSION and isinstance(params.get("hasUnreadTurn"), bool):
+                self.protocol_errors.discard((key, "read"))
+                self.protocol_errors.discard(("*", "read"))
                 if state:
                     if params["hasUnreadTurn"]:
                         state.metadata["hasUnreadTurn"] = True
+                        if state.valid and state.latest_turn:
+                            self.registry.mark_unread(state)
+                        else:
+                            self.pending_unread.add(key)
                     else:
+                        self.pending_unread.discard(key)
                         # Opening an already-finished chat is an explicit read
                         # edge. A repeated follower snapshot can still carry
                         # unread=True, so acknowledge only this known turn.
@@ -269,9 +310,54 @@ class Plugin:
                                 and (turn.get("turnId") or turn.get("id"))):
                             self.registry.mark_seen(state)
                             state.metadata["hasUnreadTurn"] = False
-                        self.refresh_pending = True
+                    self.refresh_pending = True
             else:
+                self.protocol_errors.add((key, "read"))
                 self.refresh_pending = True
+
+    def reload_handoff(self) -> list[dict]:
+        # Keep recent identity/project context, never old transcript, turn or
+        # unread values. Fresh snapshots still determine what becomes visible.
+        return [{"key": key, "unreadEdge": key in self.pending_unread, "projectMetadata": {k: state.metadata[k]
+                    for k in ("workspaceKind", "cwd", "projectId") if k in state.metadata}}
+                for key, state in self.states.items()
+                if not state.metadata.get("ephemeral") and not state.metadata.get("parentThreadId")]
+
+    def consume_handoff(self, observed: list[dict]) -> None:
+        for item in observed:
+            key = item["key"]
+            host, tid = split_thread_key(key)
+            state = self.states.setdefault(key, ThreadState(tid, host_id=host))
+            if not state.valid:
+                state.metadata.update(item["projectMetadata"])
+            self.pending_discovery.add(key)
+            if item.get("unreadEdge"):
+                self.pending_unread.add(key)
+        # Project identity is available before deciding which followers to keep
+        # paused, including remote root-path assignments.
+        self.project_by_thread.update({key: p["id"] for key, p in self.metadata.identities(self.states).items()})
+        if self.connected and self.ipc:
+            for key in self.pending_discovery:
+                if not self.project_paused(key):
+                    host, tid = split_thread_key(key)
+                    self.ipc.follow(tid, host_id=host)
+            self.pending_discovery.clear()
+
+    def adapter_health(self) -> dict:
+        if not self.enabled:
+            status = "paused"
+        elif any(key == "*" or not self.project_paused(key) for key, _ in self.protocol_errors):
+            status = "protocol-error"
+        elif self.connected:
+            status = "ready"
+        elif self.ipc or self.resume_connecting:
+            status = "connecting"
+        else:
+            status = "disconnected"
+        detail = "Codex 状态协议已变化，请更新插件" if status == "protocol-error" else self.detail
+        if status == "ready" and detail == "Codex 状态协议已变化，请更新插件":
+            detail = "已连接当前 Codex 桌面"
+        return {"status": status, "detail": connection_text(detail, self.language.language)}
 
     def refresh_tracked(self) -> None:
         if not self.connected or not self.ipc:
@@ -339,7 +425,9 @@ class Plugin:
             self.notices.reset()
             self.pending_notice = None
             self.notice_target = None
-        result = {"kind": "state", "connected": self.connected, "detail": connection_text(self.ui_error or self.detail, self.language.language),
+        health = self.adapter_health()
+        result = {"kind": "state", "connected": self.connected, "detail": connection_text(self.ui_error, self.language.language) if self.ui_error else health["detail"],
+                  "health": health,
                   "uiLanguage": self.language.language, "languageSetting": self.language.metadata(),
                   "notificationStates": sorted(self.notification_states), "compactMenuBar": self.compact_menu_bar, "statusEmoji": self.status_emoji,
                   "projects": groups, "projectControls": controls, "enabled": self.enabled, "adapter": "desktop-ipc-v11", "pluginVersion": VERSION,
@@ -539,6 +627,7 @@ class Plugin:
             self.finish_resume_probe(False,"plugin-control")
         if action == "reload":
             self.publish()  # Preserve the latest stable numbers/local seen state.
+            self.events.put(("payload_handoff", self.reload_handoff()))
             # Run the normal finally block first. The small plugin host retains
             # stdin/stdout, queued requests and the lock while loading new code.
             self.reload_requested = True
@@ -717,6 +806,8 @@ class Plugin:
                         self.consume_ipc(*payload)
                     elif kind == "ipc_eof" and payload is self.ipc:
                         self.disconnect("与 Codex 连接中断")
+                    elif kind == "payload_handoff":
+                        self.consume_handoff(payload)
                 except (OSError, ValueError, KeyError, TypeError):
                     if kind == "ipc":
                         self.disconnect("状态接口暂不可用，正在重连")
@@ -736,20 +827,6 @@ class Plugin:
                     self.renderer.wait(timeout=3)
             if not self.reload_requested:
                 self.lock.close()
-
-
-def load_plugin_class(root: pathlib.Path):
-    # Each installed payload has an isolated relative-import namespace. Updating
-    # this plugin cannot reload modules belonging to Codex or other MCP servers.
-    name = "codex_menu_payload_" + str(time.monotonic_ns())
-    package = types.ModuleType(name)
-    package.__path__ = [str(root / "server")]
-    sys.modules[name] = package
-    spec = importlib.util.spec_from_file_location(name + ".main", root / "server/main.py")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module.Plugin
 
 
 def serve(args) -> None:

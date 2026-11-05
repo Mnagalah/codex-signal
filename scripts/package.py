@@ -3,8 +3,8 @@
 from pathlib import Path
 import argparse,json,re,stat,subprocess,zipfile
 ROOT=Path(__file__).resolve().parents[1]
-FIXED=['plugin.json','mcp.json','platform.json','codex-status-layout.html','README.md','README.zh-CN.md','CHANGELOG.md','CONTRIBUTING.md','SECURITY.md','LICENSE','THIRD-PARTY-NOTICES.md','.gitignore','.agents/plugins/marketplace.json','.github/workflows/validate.yml','native/Package.swift']
-PATTERNS=['server/*.py','server/vendor/**/*.py','server/vendor/**/LICENSE','server/vendor/**/UPSTREAM.json','server/vendor/**/py.typed','tests/*.py','tests/*.cjs','native/Sources/MenuBar/*.swift','native/Tests/MenuBarTests/*.swift','scripts/*.py','scripts/*.sh','docs/*.md','linux/gnome/**/*.js','linux/gnome/**/*.json','linux/gnome/**/*.css','linux/gnome/**/*.svg','linux/gnome/**/*.xml']
+FIXED=['plugin.json','mcp.json','platform.json','codex-status-layout.html','project-icons.json','README.md','README.zh-CN.md','CHANGELOG.md','CONTRIBUTING.md','SECURITY.md','LICENSE','THIRD-PARTY-NOTICES.md','.gitignore','.agents/plugins/marketplace.json','.github/workflows/validate.yml','native/Package.swift']
+PATTERNS=['server/*.py','server/*.json','server/vendor/**/*.py','server/vendor/**/LICENSE','server/vendor/**/UPSTREAM.json','server/vendor/**/py.typed','tests/*.py','tests/*.cjs','native/Sources/MenuBar/*.swift','native/Tests/MenuBarTests/*.swift','scripts/*.py','scripts/*.sh','docs/*.md','linux/gnome/**/*.js','linux/gnome/**/*.json','linux/gnome/**/*.css','linux/gnome/**/*.svg','linux/gnome/**/*.xml','linux/gnome/**/LICENSE']
 FORBIDDEN={'slots.json','settings.json','status.json','auth.json','.env','monitor.lock'}
 PRIVATE=[re.compile(rb'/' + rb'Users/'),re.compile(rb'01[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',re.I)]
 def inventory(target):

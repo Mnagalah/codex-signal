@@ -10,9 +10,7 @@ except ModuleNotFoundError:
     else:
         from vendor import tomli as tomllib
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-COPY = json.loads(re.search(r'<script id="interface-copy" type="application/json">\s*(.*?)</script>',
-                           (ROOT / 'codex-status-layout.html').read_text(), re.S).group(1))
+COPY = json.loads((pathlib.Path(__file__).parent / 'interface-copy.generated.json').read_text())
 
 
 def ui_language(setting):

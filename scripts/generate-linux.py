@@ -10,10 +10,8 @@ s=(ROOT/'codex-status-layout.html').read_text()
 for identifier,name in [('layout-contract','contract.json'),('interface-copy','copy.json')]:
     value=json.loads(re.search('<script id="'+identifier+'" type="application/json">\\s*(.*?)</script>',s,re.S)[1])
     output(TARGET/name,json.dumps(value,ensure_ascii=False,indent=2)+'\n')
-icons=re.search(r'const iconPaths=\{(.*?)\n\};',s,re.S)[1]
-assets=TARGET/'icons'
-for name,paths in re.findall(r"(\w+):'([^']+)'",icons):
-    output(assets/(name+'-symbolic.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>\n')
+icons=json.loads((ROOT/'project-icons.json').read_text())
+output(TARGET/'project-icons.json',json.dumps({k:'lucide-'+v['linux'] for k,v in icons.items()},indent=2,sort_keys=True)+'\n')
 m=json.loads(outputs[TARGET/'contract.json'])
 v=m['metrics'];g=m['grids'];px=lambda n:str(n)+'px'
 def padding(grid):return ' '.join(px(n) for n in g[grid]['padding'])
