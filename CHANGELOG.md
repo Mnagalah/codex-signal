@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.7 — startup and reconnect recovery
+
+- Revalidate saved and recently observed host/chat identities after a new observer session; receive the desktop's current local/remote followed-ID replay without scanning history or starting/resuming tasks.
+- Handle client/owner connection changes and logical IPC resets. Invalidate lost-owner snapshots, reject their late frames, reannounce follows even when the old local subscription set says they exist, and reject callbacks from replaced sockets.
+- Retry missing snapshots in coalesced batches with exponential backoff capped at 30 seconds. Time out missing initialization responses; keep transport connectivity distinct from syncing or unavailable task data. A timeout never means completed, read, archived or deleted.
+- Retain up to 128 recent inactive identity/project hints in private `recovery.json`, in addition to protected visible records. Keep IDs, historical slots, preferences and acknowledgements intact; persist no turns, request payloads or owner truth in the hints.
+- Treat the first recovered snapshot as a notification baseline, then alert on later real changes. Respect project/master pause and archived/deleted suppression. Mac/GNOME summaries display recovery health rather than an empty healthy list.
+- Distributed as a prerelease with full Codex quit/reopen acceptance still pending. Observer-process startup and its own socket reconnect are independently testable without restarting the host.
+
+## 0.2.6 — archive and deletion lifecycle
+
+- Observe desktop archive v2/unarchive v1 events for local and remote host/chat pairs. Retire the visible entry and only Signal's own follower; late stream/read frames cannot resurrect an archived chat, including after a payload reload.
+- Reconcile the same profile's local index in read-only mode, selecting only ID/archive status for already-known local chats. Remove legacy finished/deleted remnants and observe deletion of previously confirmed rows. Missing/locked/incompatible databases and remote IDs are not successful local deletion queries.
+- Restore archived chats only from an explicit unarchive or affirmative local-index state, then require a fresh task snapshot. Preserve independent acknowledgements, other chat IDs/slots and project/master preferences. Retire pending alert/click state without inventing a task phase or writing Codex read receipts.
+- Keep only a hidden lifecycle ID/reason and minimal archive project context in local state; deleted chat titles/turns are not retained in the hidden marker. The native renderer is unchanged.
+
 ## 0.2.5 — convergence fixes
 
 - Rearm the current completed turn on an explicit unread edge, including an edge received before a fresh snapshot or while its project is paused. Keep stale-snapshot/new-turn protection and host separation.

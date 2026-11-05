@@ -16,6 +16,8 @@ else:
 class DesktopIPC:
     STREAM_VERSION = 11
     READ_VERSION = 3
+    ARCHIVE_VERSION = 2
+    UNARCHIVE_VERSION = 1
     MAX_FRAME = 0x10000000
 
     def __init__(self, path: pathlib.Path):

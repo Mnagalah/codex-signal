@@ -32,7 +32,7 @@ final class MenuController {
         var global = Project(id: "global-control", name: language.text("statusTitle"), markerType: "emoji", marker: state.statusEmoji ?? EmojiPickerButton.defaultEmoji, threads: [], kind: "global-control")
         global.summaryStatus = state.summaryStatus
         global.summaryCount = enabled ? controls.filter { $0.updatesEnabled != false }.reduce(0) { $0 + $1.threads.count } : 0
-        global.syncing = controls.contains { $0.syncing == true && $0.updatesEnabled != false }
+        global.syncing = state.health?.isSyncing == true || controls.contains { $0.syncing == true && $0.updatesEnabled != false }
         global.healthDetail = state.health?.requiresAttention == true ? state.health?.detail : nil
         let projects = MenuBarPresentation.creationOrder(global:global,projects:monitored,compact:compact)
         let activeIDs = Set(projects.map(\.id))

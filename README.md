@@ -24,14 +24,16 @@ Each project gets a black capsule with its original icon/name and a colored numb
 - Choose which states trigger a **six-second alert**. Click its body to open the chat; **×** only closes the alert.
 - Choose an entry emoji with the system picker. Default: 🔦.
 - UI follows Codex: Simplified Chinese uses Chinese; other languages use English. Names remain exactly as Codex supplies them.
+- Startup and reconnection reacquire local/remote desktop snapshots. Saved identities are hints, never proof of a running task; missing states remain unavailable and retry. Recovery establishes a quiet baseline before later changes alert.
 - Visible chats are numbered continuously from 1 within each project. Original IDs, historical slots and acknowledgements remain separate.
+- Archived chats leave the active display; unarchiving requests fresh state instead of replaying the old badge. A scoped read-only local-index check also retires deleted local records. A remote outage is not treated as deletion. See [lifecycle limits](docs/COMPATIBILITY.md).
 
 ## Install a platform package
 
 | Asset | Requirements | Validation |
 | --- | --- | --- |
-| `codex-signal-v0.2.5-macos-arm64.zip` | Apple Silicon, macOS 14+, Python 3.10+, Codex desktop | Built/tested on the development Mac; clean-download trust check outstanding |
-| `codex-signal-v0.2.5-ubuntu22.04-beta-noarch.zip` | GNOME Shell 42, Python 3.10+, an already-working compatible Codex desktop | Full beta implementation; Ubuntu desktop validation pending |
+| `codex-signal-v0.2.7-macos-arm64.zip` | Apple Silicon, macOS 14+, Python 3.10+, Codex desktop | Built/tested on the development Mac; clean-download trust check outstanding |
+| `codex-signal-v0.2.7-ubuntu22.04-beta-noarch.zip` | GNOME Shell 42, Python 3.10+, an already-working compatible Codex desktop | Full beta implementation; Ubuntu desktop validation pending |
 
 Extract the platform ZIP to a folder you will keep, then run:
 
@@ -44,7 +46,7 @@ Extract the platform ZIP to a folder you will keep, then run:
 
 Installation uses Codex's local marketplace commands. Continue in a new chat turn and check Signal's actual status; no Codex restart is requested. An existing loaded Signal can hot-reload an already installed newer payload using its refresh button. First-time desktop plugin discovery can depend on the host version.
 
-The Mac helper currently has an **ad-hoc signature**, not Developer ID notarization. A downloaded copy may be blocked by macOS trust policy. Do not disable Gatekeeper or strip quarantine; see [distribution status](docs/PACKAGING.md). Version 0.2.5 is distributed as a prerelease with these limitations.
+The Mac helper currently has an **ad-hoc signature**, not Developer ID notarization. A downloaded copy may be blocked by macOS trust policy. Do not disable Gatekeeper or strip quarantine; see [distribution status](docs/PACKAGING.md). Version 0.2.7 is a prerelease. Full Codex quit/reopen acceptance remains pending; live local/remote observer startup and its own reconnect were verified.
 
 Ubuntu 22.04 is not in the desktop app's current official supported distribution list. Its private observer protocol must match the beta adapter. The beta does not install, replace or upgrade Codex. [Compatibility and limits](docs/COMPATIBILITY.md).
 

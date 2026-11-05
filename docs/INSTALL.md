@@ -42,7 +42,7 @@ Installed version directories are immutable: increment the plugin version before
 
 Maintainers keeping a separate local marketplace identity should generate it with `python3 scripts/stage-deployment.py --destination /path/to/deployment --marketplace sample-local-source`. This exports the same business code and version with only marketplace/diagnostic configuration differences. It does not install, restart anything, or touch user records. Do not enable a second marketplace edition over the existing data store.
 
-After a repository exists, it may be registered with its **actual** URL and `--ref v0.2.5`. Do not run a placeholder repository URL. A Git marketplace release commit must include a platform-appropriate helper/manifest; Mac is the default root package. Ubuntu users should use the beta platform ZIP, whose `platform.json` is generated for Linux. Attaching a ZIP to GitHub does not make a plain Git marketplace entry download it automatically. [Official marketplace guide](https://developers.openai.com/plugins/build/plugins).
+After a repository exists, it may be registered with its **actual** URL and `--ref v0.2.7`. Do not run a placeholder repository URL. A Git marketplace release commit must include a platform-appropriate helper/manifest; Mac is the default root package. Ubuntu users should use the beta platform ZIP, whose `platform.json` is generated for Linux. Attaching a ZIP to GitHub does not make a plain Git marketplace entry download it automatically. [Official marketplace guide](https://developers.openai.com/plugins/build/plugins).
 
 ## Remove only Signal
 
