@@ -1,0 +1,26 @@
+import importlib.util
+from pathlib import Path
+import unittest
+from unittest.mock import call, patch
+
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location('signal_packaging', ROOT / 'scripts/package.py')
+packaging = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(packaging)
+
+
+class PackagingTests(unittest.TestCase):
+    def test_macos_verification_places_input_before_architecture_list(self):
+        binary = Path('/tmp/sample-menu-bar')
+        with patch.object(packaging.subprocess, 'run') as run:
+            packaging.verify_macos_binary(binary, 'arm64')
+        self.assertEqual(run.call_args_list, [
+            call(['lipo', str(binary), '-verify_arch', 'arm64'], check=True),
+            call(['codesign', '--verify', '--strict', str(binary)], check=True),
+        ])
+
+    def test_unsupported_architecture_is_rejected_before_running_tools(self):
+        with patch.object(packaging.subprocess, 'run') as run:
+            with self.assertRaises(ValueError):
+                packaging.verify_macos_binary(Path('/tmp/sample-menu-bar'), 'riscv64')
+        run.assert_not_called()

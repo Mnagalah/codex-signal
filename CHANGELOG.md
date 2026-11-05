@@ -7,7 +7,7 @@
 - Expose adapter protocol/connection health separately from task phase; empty panels and status entries no longer turn a protocol failure into “No active chats”.
 - Reuse same-version factories and release obsolete namespaces, including those created by older persistent hosts.
 - Export local marketplace deployments from this single business source; generate backend copy from the shared HTML instead of parsing the demo at runtime. Separate native diagnostics from the production controller.
-- Require Swift 6.2+ and select Xcode 26.2 explicitly for Mac CI. Share named-marker mappings across Mac/GNOME and ship the complete pinned Lucide SVG set with its license for the Ubuntu beta.
+- Require Swift 6.2+ and select Xcode 26.2 explicitly for Mac CI; make animation tests independent of host accessibility settings and use the documented input-first `lipo -verify_arch` order. Share named-marker mappings across Mac/GNOME and ship the complete pinned Lucide SVG set with its license for the Ubuntu beta.
 
 ## 0.2.4 — hot-update ownership handoff
 
