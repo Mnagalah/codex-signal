@@ -129,7 +129,7 @@ class ControlTests(unittest.TestCase):
                 process.stderr.close()
 
 
-    def check_reload_release(self, broken):
+    def check_reload_release(self, broken, *, explicit_reload=True):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)
             cache = root / "codex-menu-status"
@@ -152,7 +152,8 @@ class ControlTests(unittest.TestCase):
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
             try:
                 values = [
-                    {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "control_monitor", "arguments": {"action": "reload"}}},
+                    ({"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "control_monitor", "arguments": {"action": "reload"}}}
+                     if explicit_reload else {"jsonrpc": "2.0", "id": 1, "method": "ping"}),
                     {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "get_status"}}]
                 process.stdin.write("".join(json.dumps(x) + "\n" for x in values).encode())
                 process.stdin.flush()
@@ -179,6 +180,9 @@ class ControlTests(unittest.TestCase):
 
     def test_reload_adopts_new_installed_payload_without_reconnecting_mcp(self):
         self.check_reload_release(False)
+
+    def test_elected_old_instance_adopts_installed_update_without_reload_request(self):
+        self.check_reload_release(False, explicit_reload=False)
 
     def test_invalid_update_restores_previous_plugin_and_reports_failure(self):
         self.check_reload_release(True)

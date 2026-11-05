@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4 — hot-update ownership handoff
+
+- A newly elected standby adopts the newest complete same-source payload before starting the renderer or publishing state. Keep the MCP queue and ownership lock across adoption; failed payloads retain the explicit fallback instead of retrying forever.
+
 ## 0.2.3 — remote unread reappearance
 
 - Requery already-observed inactive chats when desktop read metadata changes. A remote finished chat marked unread can return without manual refresh, even when its owner emits no read broadcast. The existing viewed-chat removal path remains automatic.
