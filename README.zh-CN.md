@@ -28,8 +28,8 @@
 
 ## 下载对应平台的插件包
 
-- **Mac：**`codex-signal-v0.2.2-macos-arm64.zip`，Apple Silicon、macOS 14+、Python 3.10+、Codex 桌面 App。已带编译好的菜单栏组件，使用者不需要 Xcode。
-- **Ubuntu 测试版：**`codex-signal-v0.2.2-ubuntu22.04-beta-noarch.zip`，GNOME Shell 42、Python 3.10+，以及你自己已经能运行的兼容 Codex 桌面构建。包含完整 Python/GJS 源码与伴生扩展，不含 Mac 可执行文件。
+- **Mac：**`codex-signal-v0.2.3-macos-arm64.zip`，Apple Silicon、macOS 14+、Python 3.10+、Codex 桌面 App。已带编译好的菜单栏组件，使用者不需要 Xcode。
+- **Ubuntu 测试版：**`codex-signal-v0.2.3-ubuntu22.04-beta-noarch.zip`，GNOME Shell 42、Python 3.10+，以及你自己已经能运行的兼容 Codex 桌面构建。包含完整 Python/GJS 源码与伴生扩展，不含 Mac 可执行文件。
 
 解压到长期保留的目录后运行：
 
@@ -42,7 +42,7 @@
 
 安装通过 Codex 的本地 marketplace 完成，不请求重启 Codex；继续新一轮聊天后检查实际加载状态。已有版本可用插件刷新按钮热加载已安装更新。首次插件发现是否即时生效取决于桌面宿主版本，不把安装成功等同于已经热加载。
 
-**Mac 下载信任：**当前组件只有 ad-hoc 签名，未做 Developer ID 公证；从网络下载后仍可能被系统阻止。不要关闭 Gatekeeper 或移除隔离属性绕过。0.2.2 以预发布版提供，见[打包说明](docs/PACKAGING.md)。
+**Mac 下载信任：**当前组件只有 ad-hoc 签名，未做 Developer ID 公证；从网络下载后仍可能被系统阻止。不要关闭 Gatekeeper 或移除隔离属性绕过。0.2.3 以预发布版提供，见[打包说明](docs/PACKAGING.md)。
 
 **Ubuntu 验收：**代码已实现，尚未在 Ubuntu 桌面实机验收。官方当前 Linux 桌面支持列表不含 22.04；本测试版不代装或升级桌面 App。真实状态接口、自动已看、跳转、4K/多屏、Xorg/Wayland 由测试机按[清单](docs/UBUNTU-BETA.md)确认。
 

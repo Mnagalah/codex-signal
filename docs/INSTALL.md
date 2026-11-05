@@ -38,7 +38,7 @@ codex plugin add codex-menu-status@codex-signal
 
 Click Signal's refresh button to hot-load the **already installed** new backend/renderer while retaining its MCP transport and records. Verify the effective version and readiness. This does not restart Codex. The GNOME companion is a separate Shell component; update it explicitly with `install-gnome.sh`, which disables only Signal's extension and keeps a recovery copy. No Shell restart is automated.
 
-After a repository exists, it may be registered with its **actual** URL and `--ref v0.2.2`. Do not run a placeholder repository URL. A Git marketplace release commit must include a platform-appropriate helper/manifest; Mac is the default root package. Ubuntu users should use the beta platform ZIP, whose `platform.json` is generated for Linux. Attaching a ZIP to GitHub does not make a plain Git marketplace entry download it automatically. [Official marketplace guide](https://developers.openai.com/plugins/build/plugins).
+After a repository exists, it may be registered with its **actual** URL and `--ref v0.2.3`. Do not run a placeholder repository URL. A Git marketplace release commit must include a platform-appropriate helper/manifest; Mac is the default root package. Ubuntu users should use the beta platform ZIP, whose `platform.json` is generated for Linux. Attaching a ZIP to GitHub does not make a plain Git marketplace entry download it automatically. [Official marketplace guide](https://developers.openai.com/plugins/build/plugins).
 
 ## Remove only Signal
 
