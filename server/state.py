@@ -18,7 +18,7 @@ else:
 
 TURN_FIELDS = {"turnId", "id", "status", "turnStartedAtMs", "durationMs"}
 THREAD_FIELDS = {"id", "title", "workspaceKind", "projectId", "parentThreadId",
-                 "ephemeral", "threadRuntimeStatus", "hasUnreadTurn", "updatedAt", "cwd", "hostId"}
+                 "ephemeral", "threadRuntimeStatus", "hasUnreadTurn", "updatedAt", "cwd", "hostId", "threadSource"}
 TERMINAL = {"completed", "failed", "interrupted"}
 
 
@@ -205,6 +205,11 @@ class WatchRegistry:
         self.entries: dict[str, dict] = copy.deepcopy((saved or {}).get("entries", {}))
         self.next_number: dict[str, int] = dict((saved or {}).get("nextNumber", {}))
         self.acknowledged: dict[str, str] = dict((saved or {}).get("acknowledged", {}))
+        self.hidden: dict[str, dict] = copy.deepcopy((saved or {}).get("hiddenThreads", {}))
+
+    def hide(self, key: str, reason: str, context: dict) -> None:
+        self.hidden[key] = {"reason": reason, "projectMetadata": context if reason == "archived" else {}}
+        self.entries.pop(key, None)
 
     def mark_seen(self, thread: ThreadState) -> None:
         if thread.phase() in ("completed", "failed", "stopped"):
@@ -223,6 +228,9 @@ class WatchRegistry:
     def update(self, states: dict[str, ThreadState], projects: dict, connected: bool, *, language="zh-CN") -> list[dict]:
         now = time.time()
         for tid, state in states.items():
+            if tid in self.hidden:
+                self.entries.pop(tid, None)
+                continue
             m, phase = state.metadata, state.phase()
             if m.get("ephemeral") or m.get("parentThreadId"):
                 continue
@@ -276,5 +284,8 @@ class WatchRegistry:
         return list(groups.values())
 
     def saved(self) -> dict:
-        return {"entries": self.entries, "nextNumber": self.next_number,
-                "acknowledged": self.acknowledged}
+        saved = {"entries": self.entries, "nextNumber": self.next_number,
+                 "acknowledged": self.acknowledged}
+        if self.hidden:
+            saved["hiddenThreads"] = self.hidden
+        return saved

@@ -5,14 +5,15 @@
 - [x] Name **Codex Signal**, repository `codex-signal`, MIT; retain internal plugin ID `codex-menu-status`.
 - [x] Lightweight Python 3.10+ prerequisite, user-managed. No bundled runtime or silent environment changes.
 - [x] Mac asset and explicitly named Ubuntu/GNOME 42 **beta** assets may share a Release; Linux remains beta until native acceptance.
-- [x] Initial public-repository publication authorized; packaging itself does not perform remote publication.
+- [x] Public-repository and 0.2.7 prerelease publication authorized; packaging itself does not perform remote publication.
 
 ## Candidate evidence
 
 - [x] Allowlist export, private path/live-ID checks, no local records/evidence or diagnostic capture enabled in assets.
 - [x] English/Chinese READMEs, install/update/removal/recovery, AI install prompt, compatibility, MIT/Tomli notices.
 - [x] Shared Python regression/platform/bridge tests and deterministic Linux model/UI harness run locally.
-- [x] Optimized Mac arm64 helper built; native suite run locally. For 0.2.5: 119 Python tests, 77 serial native tests and 16 Linux synthetic checks passed locally.
+- [x] 0.2.7 prerelease candidate: 153 Python regressions, 79 Mac native tests, 17 Linux model/API checks; generated resources and signed arm64 build validated. A fresh live observer discovered local/remote chats and recovered both after reconnecting only its own socket. These checks remain separate from full host quit/reopen acceptance.
+- [ ] User-coordinated Codex quit/reopen acceptance: automatic plugin activation, local/remote discovery, stale-color invalidation and no old alert replay. This remains an explicit prerelease acceptance gap.
 - [ ] Clean Mac download/quarantine trust check; current helper has only ad-hoc signing, not Developer ID notarization.
 - [ ] Ubuntu 22.04 real GNOME installation, exact desktop protocol/read state, links, high-DPI/multi-screen, lock/exit/disable acceptance. Beta may be distributed **for these tests**, with gaps explicit.
 - [ ] Linux peer credential path verified on Linux itself (Mac tests inject credentials and do not prove SO_PEERCRED behavior).

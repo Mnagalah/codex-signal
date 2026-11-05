@@ -3,7 +3,8 @@ import AppKit
 struct AdapterHealth: Codable, Sendable {
     var status: String
     var detail: String
-    var requiresAttention: Bool { status == "protocol-error" || status == "disconnected" }
+    var requiresAttention: Bool { status == "protocol-error" || status == "disconnected" || status == "unavailable" }
+    var isSyncing: Bool { status == "syncing" || status == "connecting" }
 }
 
 struct MonitorState: Codable, Sendable {
@@ -22,12 +23,12 @@ struct MonitorState: Codable, Sendable {
         let states=Set((projectControls ?? projects).filter { $0.updatesEnabled != false }.flatMap { $0.threads.map { $0.status == "syncing" ? "syncing" : (connected ? $0.status : "unknown") } })
         let phase = Layout.specification.statusPriority.first { states.contains($0) }
         if health?.requiresAttention == true, !["failed", "approval", "input"].contains(phase ?? "") { return "unknown" }
-        return phase ?? (states.contains("syncing") ? "syncing" : nil)
+        return phase ?? (states.contains("syncing") || health?.isSyncing == true ? "syncing" : nil)
     }
     var language: InterfaceLanguage { InterfaceLanguage(code: uiLanguage ?? "zh-CN") }
     var presentationDetail: String {
         if enabled == false { return language.text("monitorDisabled") }
-        if let health, health.requiresAttention { return health.detail }
+        if let health, health.status != "ready" && health.status != "paused" { return health.detail }
         if (projectControls ?? projects).contains(where: { $0.syncing == true && $0.updatesEnabled != false }) { return language.text("syncing") }
         return connected && projects.isEmpty ? language.text("noChats") : detail
     }

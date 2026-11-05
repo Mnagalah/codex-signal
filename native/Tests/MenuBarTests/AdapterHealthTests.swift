@@ -33,3 +33,25 @@ import Testing
     #expect(state.summaryStatus == nil)
     #expect(state.presentationDetail == "Updates paused")
 }
+
+@Test func connectionHandshakeIsNotACompletedStateSync() {
+    var state = MonitorState(connected: true, detail: "Connected", projects: [], uiLanguage: "en")
+    state.health = AdapterHealth(status: "syncing", detail: "Syncing current chats")
+    #expect(state.summaryStatus == "syncing")
+    #expect(state.presentationDetail == "Syncing current chats")
+    state.health = AdapterHealth(status: "unavailable", detail: "Status unavailable")
+    #expect(state.connected)
+    #expect(state.summaryStatus == "unknown")
+    #expect(state.presentationDetail == "Status unavailable")
+}
+
+@Test func partialRecoveryKeepsKnownApprovalVisible() {
+    let chat = Chat(id: "sample", index: 1, title: "Sample", since: 0, canMarkSeen: false, status: "approval", detail: "Needs approval")
+    let project = Project(id: "sample", name: "Sample", markerType: "icon", marker: "folder", threads: [chat])
+    var state = MonitorState(connected: true, detail: "Connected", projects: [project], uiLanguage: "en")
+    state.health = AdapterHealth(status: "unavailable", detail: "Status unavailable")
+    #expect(state.summaryStatus == "approval")
+    state.enabled = false
+    #expect(state.summaryStatus == nil)
+    #expect(state.presentationDetail == "Updates paused")
+}

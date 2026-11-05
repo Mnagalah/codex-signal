@@ -16,6 +16,7 @@ def settings_path(data):
 def codex_home():return pathlib.Path(os.environ.get('CODEX_HOME',str(pathlib.Path.home()/'.codex')))
 def desktop_state():return pathlib.Path(os.environ.get('CODEX_SIGNAL_DESKTOP_STATE',str(codex_home()/'.codex-global-state.json')))
 def desktop_config():return pathlib.Path(os.environ.get('CODEX_SIGNAL_CONFIG',str(codex_home()/'config.toml')))
+def desktop_state_db():return pathlib.Path(os.environ.get('CODEX_SIGNAL_STATE_DB',str(desktop_state().parent/'state_5.sqlite')))
 def desktop_socket():return pathlib.Path(os.environ.get('CODEX_SIGNAL_IPC',str(codex_home()/'ipc/ipc.sock')))
 
 def ui_socket():
