@@ -62,14 +62,14 @@ node tests/linux-ui.cjs                    # deterministic model/GJS API harness
 python3 scripts/generate-layout.py --check
 python3 scripts/generate-linux.py --check
 # macOS only:
-swift test --disable-sandbox --package-path native
+swift test --disable-sandbox --no-parallel --package-path native
 ./scripts/build-release.sh
 python3 scripts/package.py --target macos
 # Architecture-independent Python/GJS source package:
 python3 scripts/package.py --target ubuntu22.04-beta
 ```
 
-Python 3.10+ is needed for development; Mac builds also need Swift 6.2+/Apple command-line tools. Shared layout, motion and bilingual copy come from `codex-status-layout.html`. The HTML uses fictional data, never real chats.
+Python 3.10+ is needed for development; Mac builds also need Swift 6.2+/Apple command-line tools. Run native tests serially: they share the AppKit main run loop and a reduced-motion override. Shared layout, motion and bilingual copy come from `codex-status-layout.html`. The HTML uses fictional data, never real chats.
 
 Business code has one source. Local marketplace deployments are generated exports, not maintained forks. Backend interface copy and native/GNOME resources are generated from the HTML; named project markers use `project-icons.json`. Protocol/connection health stays distinct from chat phase, and a same-version refresh reuses its loaded factory. See [update and deployment rules](docs/INSTALL.md).
 
