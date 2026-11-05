@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 — remote unread reappearance
+
+- Requery already-observed inactive chats when desktop read metadata changes. A remote finished chat marked unread can return without manual refresh, even when its owner emits no read broadcast. The existing viewed-chat removal path remains automatic.
+- Keep reconciliation read-only, scoped to observed host/chat pairs, and respectful of paused projects; do not enumerate history or interpret opaque account buckets.
+
 ## 0.2.2 — read-state synchronization
 
 - An explicit desktop read event immediately clears a known finished turn. A stale unread snapshot cannot restore that reminder; a later turn still notifies normally. Reads during running/unknown state do not acknowledge a future completion. Local and remote identities remain separate.

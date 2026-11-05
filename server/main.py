@@ -37,7 +37,7 @@ else:
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 RESUME_SNAPSHOT_WAIT = 5.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
@@ -268,10 +268,13 @@ class Plugin:
     def refresh_tracked(self) -> None:
         if not self.connected or not self.ipc:
             return
-        # Read changes are not necessarily stream patches. Repeating following
-        # requests a read-only snapshot, and never writes an acknowledgement.
+        # Read changes are not necessarily stream patches/broadcasts, especially
+        # for remote owners. Requery every chat already observed this session:
+        # a finished, read chat may have left the visible registry before it is
+        # marked unread again. Never discover IDs from opaque account buckets
+        # or enumerate history. Repeating following is a read-only snapshot.
         for tid in tuple(self.states):
-            if not self.project_paused(tid) and (tid in self.registry.entries or self.states[tid].metadata.get("hasUnreadTurn")):
+            if not self.project_paused(tid):
                 host, actual = split_thread_key(tid)
                 self.ipc.follow(actual, host_id=host)
 
