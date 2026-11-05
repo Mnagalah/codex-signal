@@ -24,6 +24,12 @@ def archive(path,items):
             info=zipfile.ZipInfo(name);info.create_system=3;info.compress_type=zipfile.ZIP_DEFLATED
             info.external_attr=(stat.S_IFREG|(0o755 if executable else 0o644))<<16;z.writestr(info,data)
 
+def verify_macos_binary(binary,arch):
+    if arch not in ('arm64','x86_64'):raise ValueError('Unsupported build architecture')
+    # -verify_arch accepts a list of architectures, so its input must come first.
+    subprocess.run(['lipo',str(binary),'-verify_arch',arch],check=True)
+    subprocess.run(['codesign','--verify','--strict',str(binary)],check=True)
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--target',choices=['macos','ubuntu22.04-beta'],default='macos');args=parser.parse_args()
     version=json.loads((ROOT/'plugin.json').read_text())['version']
@@ -35,9 +41,7 @@ def main():
     mac=args.target=='macos';spec=json.loads((ROOT/'platform.json').read_text())
     if mac:
         arch=spec['architecture']
-        if arch not in ('arm64','x86_64'):raise ValueError('Unsupported build architecture')
-        subprocess.run(['lipo','-verify_arch',arch,str(ROOT/'bin/codex-menu-bar')],check=True)
-        subprocess.run(['codesign','--verify','--strict',str(ROOT/'bin/codex-menu-bar')],check=True)
+        verify_macos_binary(ROOT/'bin/codex-menu-bar',arch)
     else:
         arch='noarch';spec={'os':'Linux','architecture':'any','distribution':'ubuntu22.04-gnome42-beta','pythonMinimum':'3.10','runtimeBundled':False,'gnomeShell':['42'],'desktopIPC':'stream-v11-read-v3','realDeviceTested':False}
     files=inventory('macos' if mac else 'linux');out=ROOT/'dist';out.mkdir(exist_ok=True)
