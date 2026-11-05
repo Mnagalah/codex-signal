@@ -6,6 +6,8 @@ Retained fields include original chat/host IDs, project association and icon, ti
 
 No analytics, advertising, external status service, API key or extra inference call is used by this plugin. Following/unfollowing applies only to Signal's observer. It never approves commands, resumes tasks, sends messages or writes Codex read receipts. A user click opens the original Codex chat; Codex may then apply its own normal read behavior. Signal's local checkmark only acknowledges its own reminder.
 
+Payload reload uses the existing in-process queue to transfer recently observed host/chat identities, minimal project-association fields and any pending explicit unread intent. It never transfers transcript bodies or treats an old turn snapshot as fresh state. This handoff is not a persistent history inventory. Adapter health reports protocol incompatibility separately from an empty chat list.
+
 Capture diagnostics are off in public `mcp.json`. A developer who deliberately enables `CODEX_MENU_STATUS_CAPTURE=1` can capture Signal's own views and metadata locally; titles and project names in those files are private. Do not attach raw `status.json`, `slots.json`, screen captures, socket payloads, config files, account data or session exports to public issues. Use fictional fixtures and report only versions, expected behavior and the minimal redacted error.
 
 Open-source uploads are made from a whitelist export, not from the development directory or user data. Private evidence stays outside this repository. The HTML demo uses fictional names. See the maintainer release checklist before publishing any screenshots or artifacts.

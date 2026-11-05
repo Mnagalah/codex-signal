@@ -163,6 +163,7 @@ final class CapsuleView: NSView, NSViewToolTipOwner {
     var aggregateDetail:String {
         guard project.kind == "global-control" else { return connectionDetail }
         guard globalEnabled else { return language.text("monitorDisabled") }
+        if let issue = project.healthDetail { return issue }
         guard let phase=project.summaryStatus else { return language.text("noChats") }
         return language.text("aggregateStatus",["status":language.text(phase),"n":String(project.summaryCount ?? 0)])
     }

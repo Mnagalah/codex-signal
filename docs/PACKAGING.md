@@ -2,6 +2,8 @@
 
 ## Build the lightweight artifacts
 
+Native source builds require Swift 6.2+; Mac CI explicitly selects the installed Xcode 26.2 toolchain. The macOS 14 deployment target is unchanged. A source-build toolchain requirement is separate from what an end user needs to run the precompiled helper.
+
 Python is deliberately **not bundled**. Users or their Codex assistant prepare Python 3.10+ themselves. Tomli's pure-Python source/license is included for Python 3.10; newer Python uses its standard TOML parser. No Python package manager is needed at runtime.
 
 ```sh
@@ -13,11 +15,11 @@ python3 scripts/generate-linux.py
 python3 scripts/package.py --target ubuntu22.04-beta
 ```
 
-Outputs for 0.2.4:
+Outputs for 0.2.5:
 
-- `dist/codex-signal-v0.2.4-macos-arm64.zip`: root plugin/marketplace manifests, backend, prebuilt native helper, source, docs, MIT and dependency notices.
-- `dist/codex-signal-v0.2.4-ubuntu22.04-beta-noarch.zip`: Linux platform manifest, Python backend, socket bridge and GNOME 42 companion. **No Mach-O binary.** `noarch` describes the pure-source payload, not validated hardware coverage.
-- `dist/codex-signal-v0.2.4-gnome42-companion-beta.zip`: the same companion alone, in GNOME's extension ZIP layout, for explicit manual installation.
+- `dist/codex-signal-v0.2.5-macos-arm64.zip`: root plugin/marketplace manifests, backend, prebuilt native helper, source, docs, MIT and dependency notices.
+- `dist/codex-signal-v0.2.5-ubuntu22.04-beta-noarch.zip`: Linux platform manifest, Python backend, socket bridge and GNOME 42 companion. **No Mach-O binary.** `noarch` describes the pure-source payload, not validated hardware coverage.
+- `dist/codex-signal-v0.2.5-gnome42-companion-beta.zip`: the same companion alone, in GNOME's extension ZIP layout, for explicit manual installation.
 
 No `.app`, DMG, systemd service, LaunchAgent or login item. Each main ZIP is an extracted-folder marketplace; its installer uses official Codex marketplace commands. Root `plugin.json` and `mcp.json` follow [OpenAI's packaging guide](https://developers.openai.com/plugins/build/plugins).
 
@@ -33,7 +35,7 @@ Before promoting this candidate as a generally trusted Mac download, arrange Dev
 
 Repository name: **`codex-signal`**. Display name: **Codex Signal**. License: **MIT**. Keep the stable internal plugin ID `codex-menu-status` and marketplace `codex-signal`.
 
-Create a version/tag such as `v0.2.4` and attach the Mac candidate and the two clearly named **beta** Linux assets together. GitHub's release-level prerelease flag applies to the whole Release, not an individual attachment: while Mac clean-download trust is still unverified, start with a prerelease; once Mac is accepted, the Release can be normal and Linux remains explicitly beta by filenames and notes. [GitHub releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
+Create a version/tag such as `v0.2.5` and attach the Mac candidate and the two clearly named **beta** Linux assets together. GitHub's release-level prerelease flag applies to the whole Release, not an individual attachment: while Mac clean-download trust is still unverified, start with a prerelease; once Mac is accepted, the Release can be normal and Linux remains explicitly beta by filenames and notes. [GitHub releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
 
 For Git-backed installation, the release commit must contain the matching Mac helper. Ubuntu uses the separately generated platform ZIP. A Release attachment is not fetched by a local `source.path` entry automatically. No GitHub repository, tag, upload or public release has been created by the packaging scripts.
 

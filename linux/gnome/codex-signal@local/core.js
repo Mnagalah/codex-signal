@@ -11,8 +11,11 @@ var API = (() => {
     function summary(state, priority) {
         if (state.enabled === false) return null;
         const phases = new Set(active(state).flatMap(p => p.threads.map(c => c.status === 'syncing' ? 'syncing' : state.connected ? c.status : 'unknown')));
-        return priority.find(p => phases.has(p)) || (phases.has('syncing') ? 'syncing' : null);
+        const phase=priority.find(p => phases.has(p));
+        if(healthDetail(state) && !['failed','approval','input'].includes(phase))return 'unknown';
+        return phase || (phases.has('syncing') ? 'syncing' : null);
     }
+    function healthDetail(state) {return ['protocol-error','disconnected'].includes(state.health?.status) ? state.health.detail : null;}
     function menuProjects(state) { return state.enabled === false || state.compactMenuBar ? [] : (state.projects || []).filter(p => !p.syncing && p.updatesEnabled !== false); }
     function projectName(copy,state,p) { return p.kind === 'chat-bucket' ? text(copy,state,'chatBucket') : p.kind === 'pending' ? text(copy,state,'pendingProject') : p.name; }
     function elapsed(copy,state,since,now) {
@@ -47,6 +50,6 @@ var API = (() => {
         return {value:target+e*(x*co+b*si),velocity:e*((-z*w*x+d*b)*co+(-z*w*b-d*x)*si)};
     }
     function safeEmoji(value) {return typeof value==='string' && value.length>0 && value.length<=64 && !/[\s\u0000-\u001f]/u.test(value);}
-    return {colors,language,text,controls,active,summary,menuProjects,projectName,elapsed,rows,color,rgb,foreground,validState,noticeAllowed,validNotice,spring,safeEmoji};
+    return {colors,language,text,controls,active,summary,healthDetail,menuProjects,projectName,elapsed,rows,color,rgb,foreground,validState,noticeAllowed,validNotice,spring,safeEmoji};
 })();
 if (typeof module !== 'undefined') module.exports=API;

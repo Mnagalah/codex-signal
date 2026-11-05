@@ -30,8 +30,8 @@ Each project gets a black capsule with its original icon/name and a colored numb
 
 | Asset | Requirements | Validation |
 | --- | --- | --- |
-| `codex-signal-v0.2.4-macos-arm64.zip` | Apple Silicon, macOS 14+, Python 3.10+, Codex desktop | Built/tested on the development Mac; clean-download trust check outstanding |
-| `codex-signal-v0.2.4-ubuntu22.04-beta-noarch.zip` | GNOME Shell 42, Python 3.10+, an already-working compatible Codex desktop | Full beta implementation; Ubuntu desktop validation pending |
+| `codex-signal-v0.2.5-macos-arm64.zip` | Apple Silicon, macOS 14+, Python 3.10+, Codex desktop | Built/tested on the development Mac; clean-download trust check outstanding |
+| `codex-signal-v0.2.5-ubuntu22.04-beta-noarch.zip` | GNOME Shell 42, Python 3.10+, an already-working compatible Codex desktop | Full beta implementation; Ubuntu desktop validation pending |
 
 Extract the platform ZIP to a folder you will keep, then run:
 
@@ -44,7 +44,7 @@ Extract the platform ZIP to a folder you will keep, then run:
 
 Installation uses Codex's local marketplace commands. Continue in a new chat turn and check Signal's actual status; no Codex restart is requested. An existing loaded Signal can hot-reload an already installed newer payload using its refresh button. First-time desktop plugin discovery can depend on the host version.
 
-The Mac helper currently has an **ad-hoc signature**, not Developer ID notarization. A downloaded copy may be blocked by macOS trust policy. Do not disable Gatekeeper or strip quarantine; see [distribution status](docs/PACKAGING.md). Version 0.2.4 is distributed as a prerelease with these limitations.
+The Mac helper currently has an **ad-hoc signature**, not Developer ID notarization. A downloaded copy may be blocked by macOS trust policy. Do not disable Gatekeeper or strip quarantine; see [distribution status](docs/PACKAGING.md). Version 0.2.5 is distributed as a prerelease with these limitations.
 
 Ubuntu 22.04 is not in the desktop app's current official supported distribution list. Its private observer protocol must match the beta adapter. The beta does not install, replace or upgrade Codex. [Compatibility and limits](docs/COMPATIBILITY.md).
 
@@ -69,7 +69,9 @@ python3 scripts/package.py --target macos
 python3 scripts/package.py --target ubuntu22.04-beta
 ```
 
-Python 3.10+ is needed for development; Mac builds also need Swift 6+/Apple command-line tools. Shared layout, motion and bilingual copy come from `codex-status-layout.html`. The HTML uses fictional data, never real chats.
+Python 3.10+ is needed for development; Mac builds also need Swift 6.2+/Apple command-line tools. Shared layout, motion and bilingual copy come from `codex-status-layout.html`. The HTML uses fictional data, never real chats.
+
+Business code has one source. Local marketplace deployments are generated exports, not maintained forks. Backend interface copy and native/GNOME resources are generated from the HTML; named project markers use `project-icons.json`. Protocol/connection health stays distinct from chat phase, and a same-version refresh reuses its loaded factory. See [update and deployment rules](docs/INSTALL.md).
 
 [MIT](LICENSE) · [Third-party notices](THIRD-PARTY-NOTICES.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Release checklist](docs/RELEASE-CHECKLIST.md)
 

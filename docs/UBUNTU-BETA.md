@@ -13,7 +13,7 @@ If desktop dependencies are missing, review and explicitly approve the appropria
 
 ## Install explicitly
 
-Extract `codex-signal-v0.2.4-ubuntu22.04-beta-noarch.zip` into a persistent folder. It is architecture-independent Python/GJS source, not a Mac executable or a bundled Python runtime.
+Extract `codex-signal-v0.2.5-ubuntu22.04-beta-noarch.zip` into a persistent folder. It is architecture-independent Python/GJS source, not a Mac executable or a bundled Python runtime.
 
 ```sh
 python3 scripts/doctor.py --json
@@ -26,7 +26,7 @@ The doctor is read-only and prints versions/booleans, not chats, IDs, credential
 
 **First install can require a later GNOME logout/login** before Shell discovers a new extension, especially under Wayland. If enable says the extension is unknown, it remains installed; log out when it is safe for your other work, then run `gnome-extensions enable codex-signal@local`. Do not restart your running desktop just to satisfy the installer. The Codex plugin and desktop must also have actually loaded; verify `get_status` on the next chat turn.
 
-Alternatively, install `codex-signal-v0.2.4-gnome42-companion-beta.zip` with `gnome-extensions install` and enable it explicitly. Do not use this route as a second duplicate install over the included script.
+Alternatively, install `codex-signal-v0.2.5-gnome42-companion-beta.zip` with `gnome-extensions install` and enable it explicitly. Do not use this route as a second duplicate install over the included script.
 
 ## Version-bound desktop adapter
 

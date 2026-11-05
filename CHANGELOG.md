@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.5 — convergence fixes
+
+- Rearm the current completed turn on an explicit unread edge, including an edge received before a fresh snapshot or while its project is paused. Keep stale-snapshot/new-turn protection and host separation.
+- Hand recent observed identities and project context across payload reloads through the existing internal queue, without persisting a history inventory or replaying old turns.
+- Expose adapter protocol/connection health separately from task phase; empty panels and status entries no longer turn a protocol failure into “No active chats”.
+- Reuse same-version factories and release obsolete namespaces, including those created by older persistent hosts.
+- Export local marketplace deployments from this single business source; generate backend copy from the shared HTML instead of parsing the demo at runtime. Separate native diagnostics from the production controller.
+- Require Swift 6.2+ and select Xcode 26.2 explicitly for Mac CI. Share named-marker mappings across Mac/GNOME and ship the complete pinned Lucide SVG set with its license for the Ubuntu beta.
+
 ## 0.2.4 — hot-update ownership handoff
 
 - A newly elected standby adopts the newest complete same-source payload before starting the renderer or publishing state. Keep the MCP queue and ownership lock across adoption; failed payloads retain the explicit fallback instead of retrying forever.

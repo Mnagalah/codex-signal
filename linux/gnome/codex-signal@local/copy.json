@@ -243,6 +243,10 @@
     "恢复全部更新",
     "Resume all updates"
   ],
+  "statusUnavailable": [
+    "状态暂不可用",
+    "Status unavailable"
+  ],
   "noChats": [
     "暂无进行中的对话",
     "No active chats"
@@ -497,7 +501,7 @@
   ],
   "connection7": [
     "Codex 状态协议已变化，请更新插件",
-    "Codex status protocol changed; update this plugin"
+    "Status protocol changed. Update Signal."
   ],
   "connection8": [
     "菜单栏组件连接中断；状态服务仍在运行",
