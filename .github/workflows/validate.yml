@@ -45,7 +45,9 @@ jobs:
           python3 scripts/generate-linux.py --check
           python3 -m unittest discover -s tests -v
           node tests/linux-ui.cjs
-          swift test --disable-sandbox --package-path native
+          # AppKit tests share the main run loop and a reduced-motion override.
+          # Nested run-loop frames must not execute unrelated tests concurrently.
+          swift test --disable-sandbox --no-parallel --package-path native
       - name: Build and package a local candidate
         run: |
           ./scripts/build-release.sh
