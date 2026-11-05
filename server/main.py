@@ -37,7 +37,7 @@ else:
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 RESUME_SNAPSHOT_WAIT = 5.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
@@ -143,6 +143,14 @@ class Plugin:
         except BlockingIOError:
             return
         self.primary = True
+        # A standby MCP client may outlive its installed cache version. On
+        # acquiring ownership, adopt the complete same-source update before
+        # starting a renderer or publishing stale state. Reuse the transport
+        # queue and lock through the existing payload reload path. A failed
+        # update must retain its reported fallback, not enter a retry loop.
+        if self.update_error is None and latest_release(ROOT) != ROOT:
+            self.reload_requested, self.running = True, False
+            return
         self.enabled = load_json(self.settings_path).get("enabled", True) is not False
         if not self.enabled:
             self.detail = "监控已关闭"
