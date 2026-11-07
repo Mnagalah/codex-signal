@@ -1,9 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WITH_GNOME=0
-if [[ "${1:-}" == --with-gnome ]]; then WITH_GNOME=1; shift; fi
-[[ $# -eq 0 ]] || { echo 'Usage: ./scripts/install.sh [--with-gnome]' >&2; exit 2; }
+[[ $# -eq 0 ]] || { echo 'Usage: ./scripts/install.sh' >&2; exit 2; }
 command -v python3 >/dev/null || { echo 'Python 3.10+ is required. Ask Codex to help set up Python; see docs/INSTALL.md.' >&2; exit 1; }
 MARKETPLACE="$(python3 - "$ROOT" <<'PY'
 import json,os,pathlib,platform,re,sys
@@ -15,7 +13,6 @@ if sys.platform=='darwin':
     assert s['os']=='macOS' and platform.machine()==s['architecture'],'Wrong platform package.'
     assert int(platform.mac_ver()[0].split('.')[0])>=14,'macOS 14+ required.'
     assert os.access(r/'bin/codex-menu-bar',os.X_OK),'Prebuilt renderer missing; use a release ZIP.'
-elif sys.platform.startswith('linux'):assert s['os']=='Linux','Use the Ubuntu beta ZIP.'
 else:raise SystemExit('Unsupported platform.')
 p=pathlib.Path(os.environ.get('CODEX_HOME',str(pathlib.Path.home()/'.codex')))/'config.toml'
 config=tomllib.loads(p.read_text()) if p.exists() else {}
@@ -35,8 +32,6 @@ if [[ -z "$CLI" ]]; then
   if [[ -z "$CLI" ]]; then CLI="$(command -v codex || true)"; fi
 fi
 [[ -n "$CLI" && -x "$CLI" ]] || { echo 'Set CODEX_CLI to the Codex CLI executable bundled with your desktop app (or on PATH).' >&2; exit 1; }
-if [[ "$WITH_GNOME" == 1 ]]; then "$ROOT/scripts/install-gnome.sh"; fi
 "$CLI" plugin marketplace add "$ROOT" --json
 "$CLI" plugin add "codex-menu-status@$MARKETPLACE" --json
 printf '\nInstalled Codex Signal. Continue in a new chat turn, enable the plugin if required, then ask Codex Signal for status. No desktop restart or task command was sent.\n'
-if [[ "$(uname -s)" == Linux && "$WITH_GNOME" == 0 ]]; then echo 'Ubuntu UI needs its explicit companion: ./scripts/install-gnome.sh'; fi

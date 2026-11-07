@@ -24,3 +24,7 @@ class PackagingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 packaging.verify_macos_binary(Path('/tmp/sample-menu-bar'), 'riscv64')
         run.assert_not_called()
+
+    def test_inventory_is_mac_only_and_contains_the_native_helper(self):
+        with self.assertRaises(ValueError):packaging.inventory('unsupported')
+        self.assertIn(ROOT/'bin/codex-menu-bar',packaging.inventory('macos'))

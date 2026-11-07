@@ -42,7 +42,6 @@ class ControlTests(unittest.TestCase):
                 (release / "server/main.py").write_text("# example")
                 if complete:
                     (release / "bin/codex-menu-bar").write_text("example")
-                    (release / "server/linux_renderer.py").write_text("# Linux renderer fixture")
             (base / "10.0.0").symlink_to(base / "0.1.7", target_is_directory=True)
             self.assertEqual(latest_release(base / "0.1.6"), base / "0.1.7")
 

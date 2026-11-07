@@ -1,12 +1,16 @@
 # Codex Signal
 
-**Chat status at a glance.** A Codex desktop plugin for the chats you are using now, grouped by project. No separate application, cloud service or API key.
+**Chat status at a glance, in your Mac menu bar.** A Codex desktop plugin for the chats you are using now, grouped by project. No separate app, cloud service or API key.
 
-[简体中文](README.zh-CN.md) · [Install](docs/INSTALL.md) · [Ubuntu beta](docs/UBUNTU-BETA.md) · [Privacy](docs/PRIVACY.md)
+[简体中文](README.zh-CN.md) · [Install](docs/INSTALL.md) · [Privacy](docs/PRIVACY.md)
+
+## Install on macOS
+
+Use `codex-signal-v0.2.7-macos-arm64.zip`, macOS 14+, Python 3.10+ and Codex desktop. Extract to a persistent folder and run `/bin/sh scripts/install.sh`. Verify the current desktop's installed/enabled entry and live menu bar rather than relying on an installation message. [Installation](docs/INSTALL.md).
+
+First-install reliability is being improved; a CLI registration alone is not a completed fresh-Mac acceptance.
 
 ## Know when a chat needs you
-
-Each project gets a black capsule with its original icon/name and a colored number for each chat. The rightmost status entry stays in place as project capsules retract.
 
 | Color | State |
 | --- | --- |
@@ -18,62 +22,34 @@ Each project gets a black capsule with its original icon/name and a colored numb
 | Gray | Stopped |
 | Gray, dashed | Unknown or disconnected |
 
-- Click a project to open its panel, then again to close it. Numbered circles and chat rows open the original chat. Approvals stay in Codex.
-- Keep all capsules visible or choose **Status button only**. The single entry still indicates the highest-priority state; its panel then includes chat details under each project.
-- Pause all updates, or just one project. Neither switch stops tasks. Resuming syncs fresh state before showing task colors.
-- Choose which states trigger a **six-second alert**. Click its body to open the chat; **×** only closes the alert.
-- Choose an entry emoji with the system picker. Default: 🔦.
-- UI follows Codex: Simplified Chinese uses Chinese; other languages use English. Names remain exactly as Codex supplies them.
-- Startup and reconnection reacquire local/remote desktop snapshots. Saved identities are hints, never proof of a running task; missing states remain unavailable and retry. Recovery establishes a quiet baseline before later changes alert.
-- Visible chats are numbered continuously from 1 within each project. Original IDs, historical slots and acknowledgements remain separate.
-- Archived chats leave the active display; unarchiving requests fresh state instead of replaying the old badge. A scoped read-only local-index check also retires deleted local records. A remote outage is not treated as deletion. See [lifecycle limits](docs/COMPATIBILITY.md).
+Project capsules retain original icons/names and a colored number per chat. The rightmost status entry stays in place as projects retract.
 
-## Install a platform package
+- Click a capsule to open its panel and again to close it. Numbered circles, chat rows and notice bodies open the original chat; approvals stay in Codex.
+- Choose all project capsules or **Status button only**. The single entry still has an aggregate status color; compact panels group detailed chats under projects.
+- Pause all updates or one project without stopping tasks. Re-enable with a fresh-state handoff; startup/reconnection reacquire local and desktop-connected remote chats rather than treating cached colors as truth.
+- Select which states trigger a six-second notice. × only dismisses the card. Recovery establishes a quiet baseline before later changes alert.
+- Customize the entry with the system emoji picker; default 🔦.
+- UI follows Codex: Simplified Chinese uses Chinese; other languages use English. Project/chat names are never translated.
+- Each project's currently visible chats are numbered continuously from 1. Original IDs, historical slots and acknowledgements remain separate.
+- Archive removes a chat from display; unarchive reacquires fresh state. Confirmed local deletion is reconciled read-only. Remote unavailability is not deletion.
 
-| Asset | Requirements | Validation |
-| --- | --- | --- |
-| `codex-signal-v0.2.7-macos-arm64.zip` | Apple Silicon, macOS 14+, Python 3.10+, Codex desktop | Built/tested on the development Mac; clean-download trust check outstanding |
-| `codex-signal-v0.2.7-ubuntu22.04-beta-noarch.zip` | GNOME Shell 42, Python 3.10+, an already-working compatible Codex desktop | Full beta implementation; Ubuntu desktop validation pending |
+## Data and trust
 
-Extract the platform ZIP to a folder you will keep, then run:
+Settings and records stay under `~/Library/Application Support/CodexMenuStatus/`. Frames can contain text; the observer immediately projects needed metadata and discards bodies. It does not approve or start/resume tasks, send chat messages or write Codex read receipts. Private records and screenshots are not distributed.
 
-```sh
-./scripts/install.sh                       # macOS
-./scripts/install.sh --with-gnome          # Ubuntu; explicitly installs the companion
-```
-
-**Python is not bundled.** The installer checks prerequisites; it does not silently install Python, system packages, a different desktop app or background services. Using the release package on Mac requires no Xcode. [Ask Codex to install it](docs/INSTALL-WITH-CODEX.md), or follow [manual installation](docs/INSTALL.md).
-
-Installation uses Codex's local marketplace commands. Continue in a new chat turn and check Signal's actual status; no Codex restart is requested. An existing loaded Signal can hot-reload an already installed newer payload using its refresh button. First-time desktop plugin discovery can depend on the host version.
-
-The Mac helper currently has an **ad-hoc signature**, not Developer ID notarization. A downloaded copy may be blocked by macOS trust policy. Do not disable Gatekeeper or strip quarantine; see [distribution status](docs/PACKAGING.md). Version 0.2.7 is a prerelease. Full Codex quit/reopen acceptance remains pending; live local/remote observer startup and its own reconnect were verified.
-
-Ubuntu 22.04 is not in the desktop app's current official supported distribution list. Its private observer protocol must match the beta adapter. The beta does not install, replace or upgrade Codex. [Compatibility and limits](docs/COMPATIBILITY.md).
-
-## Local data, local control
-
-Signal follows the current desktop runtime, including remote chats connected through that desktop—not your entire account history or independent CLI/IDE processes. It reduces desktop snapshots to metadata/lifecycle fields and discards transcript bodies. It never approves commands, sends chat messages or writes Codex read receipts. A click can let Codex apply its usual read behavior; Signal's checkmark acknowledges only its own reminder.
-
-Mac data stays in the established `~/Library/Application Support/CodexMenuStatus/` location. Linux uses XDG configuration/state directories. No personal data is shipped. [Details](docs/PRIVACY.md).
+Python is not bundled; Tomli is included, so no pip packages or Xcode are needed by users. The native helper currently has an ad-hoc signature, not Developer ID notarization. Clean-Mac download trust and complete quit/reopen acceptance remain separate checks; keep macOS security protections enabled. [Compatibility](docs/COMPATIBILITY.md).
 
 ## Build and test
 
 ```sh
 python3 -m unittest discover -s tests -v
-node tests/linux-ui.cjs                    # deterministic model/GJS API harness
 python3 scripts/generate-layout.py --check
-python3 scripts/generate-linux.py --check
-# macOS only:
 swift test --disable-sandbox --no-parallel --package-path native
 ./scripts/build-release.sh
 python3 scripts/package.py --target macos
-# Architecture-independent Python/GJS source package:
-python3 scripts/package.py --target ubuntu22.04-beta
 ```
 
-Python 3.10+ is needed for development; Mac builds also need Swift 6.2+/Apple command-line tools. Run native tests serially: they share the AppKit main run loop and a reduced-motion override. Shared layout, motion and bilingual copy come from `codex-status-layout.html`. The HTML uses fictional data, never real chats.
-
-Business code has one source. Local marketplace deployments are generated exports, not maintained forks. Backend interface copy and native/GNOME resources are generated from the HTML; named project markers use `project-icons.json`. Protocol/connection health stays distinct from chat phase, and a same-version refresh reuses its loaded factory. See [update and deployment rules](docs/INSTALL.md).
+Mac source builds need Swift 6.2+ and Apple command-line tools. AppKit tests share the main run loop and run serially. Layout, motion and bilingual copy are generated from `codex-status-layout.html`; named markers use `project-icons.json`. Keep this repository as the single business source; local marketplace deployments are generated exports.
 
 [MIT](LICENSE) · [Third-party notices](THIRD-PARTY-NOTICES.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Release checklist](docs/RELEASE-CHECKLIST.md)
 

@@ -19,7 +19,7 @@ def stage(destination, marketplace, *, capture=False):
     if manifest.exists() and json.loads(manifest.read_text()).get('name') != 'codex-menu-status':
         raise ValueError('Destination belongs to another plugin')
     platform = json.loads((ROOT / 'platform.json').read_text())
-    files = inventory('macos' if platform['os'] == 'macOS' else 'linux')
+    files = inventory('macos')
     for source in files:
         target = destination / source.relative_to(ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)

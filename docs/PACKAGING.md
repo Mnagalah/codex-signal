@@ -1,44 +1,16 @@
-# Package for Codex, not as a separate app
+# Package Codex Signal for macOS
 
-## Build the lightweight artifacts
+The product is a Codex desktop plugin with a prebuilt native menu helper, not a separate app, DMG, Login Item or background service. Python 3.10+ is user-managed and not bundled; Tomli's pure-Python source/license is included.
 
-Native source builds require Swift 6.2+; Mac CI explicitly selects the installed Xcode 26.2 toolchain. The macOS 14 deployment target is unchanged. A source-build toolchain requirement is separate from what an end user needs to run the precompiled helper.
-
-Python is deliberately **not bundled**. Users or their Codex assistant prepare Python 3.10+ themselves. Tomli's pure-Python source/license is included for Python 3.10; newer Python uses its standard TOML parser. No Python package manager is needed at runtime.
+Build with Swift 6.2+ on the matching Mac:
 
 ```sh
-# On the matching Mac build host:
 ./scripts/build-release.sh
 python3 scripts/package.py --target macos
-# Pure-source Linux beta, packageable on either platform:
-python3 scripts/generate-linux.py
-python3 scripts/package.py --target ubuntu22.04-beta
 ```
 
-Outputs for 0.2.7:
+Output: `dist/codex-signal-v0.2.7-macos-arm64.zip`. The allowlist includes manifests, backend, native helper/source, shared HTML, docs, tests and licenses. Private records, probes, runtime hints and captures are excluded. Version consistency, archive inventory and native signature are checked; private build paths are remapped and debug data stripped.
 
-- `dist/codex-signal-v0.2.7-macos-arm64.zip`: root plugin/marketplace manifests, backend, prebuilt native helper, source, docs, MIT and dependency notices.
-- `dist/codex-signal-v0.2.7-ubuntu22.04-beta-noarch.zip`: Linux platform manifest, Python backend, socket bridge and GNOME 42 companion. **No Mach-O binary.** `noarch` describes the pure-source payload, not validated hardware coverage.
-- `dist/codex-signal-v0.2.7-gnome42-companion-beta.zip`: the same companion alone, in GNOME's extension ZIP layout, for explicit manual installation.
+Current signing is ad-hoc, not Developer ID notarized. Clean-download trust requires actual acceptance before claiming a frictionless trusted download. Preserve Gatekeeper/quarantine and follow Apple's notarization guidance if arranging public signing.
 
-No `.app`, DMG, systemd service, LaunchAgent or login item. Each main ZIP is an extracted-folder marketplace; its installer uses official Codex marketplace commands. Root `plugin.json` and `mcp.json` follow [OpenAI's packaging guide](https://developers.openai.com/plugins/build/plugins).
-
-The packager uses an allowlist, rejects symlinks/private home paths/live-style IDs/runtime-data filenames, verifies version alignment and disables public diagnostic capture. Mac builds remap private source paths and strip debug info, then sign the helper locally. Inventories are saved beside each ZIP. Keep development evidence outside the public repository.
-
-## Mac distribution trust is separate from Python setup
-
-The current helper has an ad-hoc signature. No Developer ID identity was available on the build Mac, so notarization and a genuine quarantined-download test have **not** been completed. This does not prevent local development or the lightweight code/package handoff. It does prevent claiming a frictionless trusted download on every clean Mac.
-
-Before promoting this candidate as a generally trusted Mac download, arrange Developer ID signing/notarization for the native helper and test the chosen archive/container through the actual browser-download route. Do not bundle credentials or remove quarantine automatically. Follow [Apple's notarization documentation](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution) for the chosen distribution container.
-
-## GitHub release arrangement
-
-Repository name: **`codex-signal`**. Display name: **Codex Signal**. License: **MIT**. Keep the stable internal plugin ID `codex-menu-status` and marketplace `codex-signal`.
-
-Create a version/tag such as `v0.2.7` and attach the Mac candidate and the two clearly named **beta** Linux assets together. GitHub's release-level prerelease flag applies to the whole Release, not an individual attachment: while Mac clean-download trust is still unverified, start with a prerelease; once Mac is accepted, the Release can be normal and Linux remains explicitly beta by filenames and notes. [GitHub releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases).
-
-For Git-backed installation, the release commit must contain the matching Mac helper. Ubuntu uses the separately generated platform ZIP. A Release attachment is not fetched by a local `source.path` entry automatically. No GitHub repository, tag, upload or public release has been created by the packaging scripts.
-
-## Official directory is an additional route
-
-GitHub distribution and the public OpenAI Plugin Directory are different. Current official local-MCP submission is limited to approved partner organizations with allowlisting, identity verification, package review and clean-desktop workflow testing. It cannot be promised simply by open-sourcing. [Desktop-only submission](https://developers.openai.com/plugins/deploy/desktop-only).
+Use the repository `codex-signal`, stable internal plugin name `codex-menu-status` and existing marketplace identity. Publication is a separate explicit action; packaging never commits, tags or uploads. Preserve prior macOS releases and Git history when narrowing current distribution scope.

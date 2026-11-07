@@ -23,8 +23,6 @@ class DeploymentTests(unittest.TestCase):
             env = dict(os.environ, HOME=str(home), CODEX_HOME=str(codex), CODEX_CLI=str(cli), CLI_LOG=str(log))
             target = base / 'deployment'
             deployment.stage(target, 'codex-menu-status-local')
-            if sys.platform.startswith('linux'):
-                p = target / 'platform.json'; value = json.loads(p.read_text()); value['os'] = 'Linux'; p.write_text(json.dumps(value))
             result = subprocess.run([str(target / 'scripts/install.sh')], env=env, capture_output=True, text=True, timeout=15)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn('plugin add codex-menu-status@codex-menu-status-local --json', log.read_text())

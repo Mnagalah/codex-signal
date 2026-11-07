@@ -215,10 +215,6 @@
     "切换 {project} 的聊天面板 · {source}",
     "Toggle chats for {project} · {source}"
   ],
-  "extensionOffline": [
-    "顶栏扩展未连接；请启用 Codex Signal GNOME 扩展",
-    "Top bar disconnected; enable the Codex Signal GNOME extension"
-  ],
   "failed": [
     "运行失败",
     "Failed"

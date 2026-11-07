@@ -7,7 +7,6 @@ import os
 import pathlib
 import re
 import time
-import sys
 import uuid
 
 ACTIONS = {"enable", "disable", "reload", "inspect", "exercise", "notice-demo", "inspect-settings", "choose-emoji", "exercise-menu", "exercise-project", "compact-on", "compact-off"}
@@ -92,7 +91,7 @@ def latest_release(current: pathlib.Path) -> pathlib.Path:
             manifest = json.loads((candidate / "plugin.json").read_text())
             if manifest.get("name") != "codex-menu-status" or manifest.get("version") != candidate.name:
                 continue
-            if not (candidate / "server/main.py").is_file() or not (candidate / ("server/linux_renderer.py" if sys.platform.startswith("linux") else "bin/codex-menu-bar")).is_file():
+            if not (candidate / "server/main.py").is_file() or not (candidate / "bin/codex-menu-bar").is_file():
                 continue
             releases.append((tuple(map(int, candidate.name.split("."))), candidate))
         except (OSError, ValueError):

@@ -1,5 +1,0 @@
-<schemalist><schema id="org.gnome.shell.extensions.codex-signal" path="/org/gnome/shell/extensions/codex-signal/">
-<key name="icon-request" type="s"><default>''</default><summary>Pending user emoji choice, acknowledged by the plugin</summary></key>
-<key name="current-icon" type="s"><default>'🔦'</default><summary>Last confirmed backend icon</summary></key>
-<key name="current-language" type="s"><default>'en'</default><summary>Codex UI language projected by the plugin</summary></key>
-  </schema></schemalist>

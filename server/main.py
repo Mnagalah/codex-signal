@@ -10,7 +10,6 @@ import pathlib
 import queue
 import re
 import signal
-import shutil
 import subprocess
 import sys
 import threading
@@ -184,9 +183,8 @@ class Plugin:
         if self.enabled:
             self.begin_snapshot_handoff()
         if not self.args.no_ui:
-            linux = sys.platform.startswith("linux")
-            binary = ROOT / ("server/linux_renderer.py" if linux else "bin/codex-menu-bar")
-            command = [sys.executable, str(binary)] if linux else [str(binary)]
+            binary = ROOT / "bin/codex-menu-bar"
+            command = [str(binary)]
             if not binary.is_file():
                 self.detail = "菜单栏组件尚未编译"
             else:
@@ -682,10 +680,6 @@ class Plugin:
             keys = {"source": "layoutSource", "version": "layoutVersion", "engine": "layoutEngine"}
             if all(isinstance(message.get(k), str) for k in keys.values()):
                 self.ui_layout = {key: message[value] for key, value in keys.items()}
-        elif event == "offline":
-            self.ui_ready = False
-            self.pending_notice = self.notice_target = self.notice_phase = None
-            self.ui_error = "顶栏扩展未连接；请启用 Codex Signal GNOME 扩展"
         elif event in ("notification_enable", "notification_disable"):
             self.set_notification_state(message.get("status"), event == "notification_enable")
         elif event == "set_status_emoji":
@@ -727,24 +721,10 @@ class Plugin:
             self.control(event)
 
     def open_chat_url(self, url):
-        command = "/usr/bin/open" if sys.platform == "darwin" else shutil.which("xdg-open")
-        if not command:
-            self.ui_error = "找不到聊天链接处理器；请配置 codex:// 桌面入口"
-            return False
         try:
-            if sys.platform.startswith("linux"):
-                query = shutil.which("xdg-mime")
-                if not query:
-                    self.ui_error = "找不到聊天链接处理器；请配置 codex:// 桌面入口"
-                    return False
-                handler = subprocess.run([query, "query", "default", "x-scheme-handler/codex"],
-                                         capture_output=True, text=True, timeout=2)
-                if handler.returncode != 0 or not handler.stdout.strip():
-                    self.ui_error = "找不到聊天链接处理器；请配置 codex:// 桌面入口"
-                    return False
-            subprocess.Popen([command, url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(["/usr/bin/open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return True
-        except (OSError, subprocess.TimeoutExpired):
+        except OSError:
             self.ui_error = "找不到聊天链接处理器；请配置 codex:// 桌面入口"
             return False
 

@@ -69,4 +69,4 @@ def connection_text(value, language):
     key = CONNECTION_KEYS.get(value)
     return text(key, language) if key else value
 
-CONNECTION_KEYS.update({'顶栏扩展未连接；请启用 Codex Signal GNOME 扩展':'extensionOffline','找不到聊天链接处理器；请配置 codex:// 桌面入口':'linkHandlerMissing'})
+CONNECTION_KEYS.update({'找不到聊天链接处理器；请配置 codex:// 桌面入口':'linkHandlerMissing'})

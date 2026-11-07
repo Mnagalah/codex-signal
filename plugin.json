@@ -9,7 +9,7 @@
       "interface": {
         "displayName": "Codex Signal",
         "shortDescription": "Chat status at a glance",
-        "longDescription": "Project capsules, attention colors and optional six-second status alerts. macOS renderer; GNOME 42 Ubuntu beta in its separate package. Python 3.10+ required.",
+        "longDescription": "Project capsules, attention colors and optional six-second status alerts for macOS. Python 3.10+ required.",
         "category": "Productivity",
         "capabilities": [
           "Read"
