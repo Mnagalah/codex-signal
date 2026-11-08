@@ -79,6 +79,8 @@ Keep CHANGELOG and Release facts and version attribution consistent. Before publ
 
 GitHub's file list shows each path's most recent content-changing commit subject. Describe the current change in the subject; explain file purposes in the repository structure table above.
 
+Use the intended contributor's GitHub-linked name and commit email, preferably the account's GitHub-provided `noreply` address. Verify the effective author and committer before committing; use an account identity rather than a project label, while keeping personal email addresses private.
+
 - Use a short, specific first line with an action verb. Omit repeated project names or version numbers when they add no useful distinction.
 - Put reasons, implementation details and verification results in the body when needed.
 - Group related files by the purpose of the change, and review the staged diff so the subject matches the actual content.
