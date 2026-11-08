@@ -1,37 +1,6 @@
-#!/bin/bash
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-[[ $# -eq 0 ]] || { echo 'Usage: ./scripts/install.sh' >&2; exit 2; }
-command -v python3 >/dev/null || { echo 'Python 3.10+ is required. Ask Codex to help set up Python; see docs/INSTALL.md.' >&2; exit 1; }
-MARKETPLACE="$(python3 - "$ROOT" <<'PY'
-import json,os,pathlib,platform,re,sys
-if sys.version_info<(3,10):raise SystemExit('Python 3.10+ is required. No runtime will be installed automatically.')
-r=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(r/'server'))
-from localization import tomllib
-s=json.loads((r/'platform.json').read_text())
-if sys.platform=='darwin':
-    assert s['os']=='macOS' and platform.machine()==s['architecture'],'Wrong platform package.'
-    assert int(platform.mac_ver()[0].split('.')[0])>=14,'macOS 14+ required.'
-    assert os.access(r/'bin/codex-menu-bar',os.X_OK),'Prebuilt renderer missing; use a release ZIP.'
-else:raise SystemExit('Unsupported platform.')
-p=pathlib.Path(os.environ.get('CODEX_HOME',str(pathlib.Path.home()/'.codex')))/'config.toml'
-config=tomllib.loads(p.read_text()) if p.exists() else {}
-market=json.loads((r/'.agents/plugins/marketplace.json').read_text())['name']
-assert re.fullmatch(r'[a-z0-9][a-z0-9-]{0,63}',market),'Invalid marketplace identity.'
-legacy=config.get('plugins',{}).get('codex-menu-status@codex-menu-status-local',{})
-if market!='codex-menu-status-local' and legacy.get('enabled') is True:raise SystemExit('The local development edition is enabled. See docs/INSTALL.md for plugin-only migration; this installer will not remove it or touch records.')
-print(market)
-PY
-)"
-if [[ "$(uname -s)" == Darwin ]]; then codesign --verify --strict "$ROOT/bin/codex-menu-bar"; fi
-CLI="${CODEX_CLI:-}"
-if [[ -z "$CLI" ]]; then
-  for CANDIDATE in /Applications/Codex.app/Contents/Resources/codex /Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex; do
-    if [[ -x "$CANDIDATE" ]]; then CLI="$CANDIDATE"; break; fi
-  done
-  if [[ -z "$CLI" ]]; then CLI="$(command -v codex || true)"; fi
-fi
-[[ -n "$CLI" && -x "$CLI" ]] || { echo 'Set CODEX_CLI to the Codex CLI executable bundled with your desktop app (or on PATH).' >&2; exit 1; }
-"$CLI" plugin marketplace add "$ROOT" --json
-"$CLI" plugin add "codex-menu-status@$MARKETPLACE" --json
-printf '\nInstalled Codex Signal. Continue in a new chat turn, enable the plugin if required, then ask Codex Signal for status. No desktop restart or task command was sent.\n'
+#!/bin/sh
+# Bootstrap without requiring Python on the desktop PATH.
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+PYTHON=$(/bin/sh "$ROOT/scripts/python.sh")
+exec "$PYTHON" -I "$ROOT/scripts/install.py" "$@"

@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 import unittest
 from unittest.mock import call, patch
@@ -28,3 +29,9 @@ class PackagingTests(unittest.TestCase):
     def test_inventory_is_mac_only_and_contains_the_native_helper(self):
         with self.assertRaises(ValueError):packaging.inventory('unsupported')
         self.assertIn(ROOT/'bin/codex-menu-bar',packaging.inventory('macos'))
+
+    def test_one_time_installation_does_not_install_a_resident_skill(self):
+        manifest=json.loads((ROOT/'plugin.json').read_text())
+        self.assertNotIn('onboardingSkill',manifest['extensions']['com.openai'])
+        self.assertFalse((ROOT/'skills').exists())
+        self.assertFalse(any(p.relative_to(ROOT).parts[0]=='skills' for p in packaging.inventory('macos')))

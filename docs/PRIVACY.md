@@ -9,3 +9,5 @@ No analytics, external status service, API key or inference call is used. Follow
 Archive/deletion markers prevent late frames from reviving retired entries. Local index reads are scoped to already-known local IDs; the database and rollouts are never written. Missing replies are not proof of deletion.
 
 Public diagnostic capture is off. Never publish status/slots/recovery files, account/config data, screenshots or raw socket frames. Publish only the packager's allowlist with fictional tests and the required licenses.
+
+The private `python-path` file stores the validated absolute interpreter path; it is not shipped or uploaded. First setup copies only the public package allowlist into the current profile's managed source and preserves prior installed payloads. The live readiness check uses a nonce receipt, not a cached status file.

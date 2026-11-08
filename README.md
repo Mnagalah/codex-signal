@@ -4,11 +4,15 @@
 
 [简体中文](README.zh-CN.md) · [Install](docs/INSTALL.md) · [Privacy](docs/PRIVACY.md)
 
-## Install on macOS
+## Install with Codex
 
-Use `codex-signal-v0.2.7-macos-arm64.zip`, macOS 14+, Python 3.10+ and Codex desktop. Extract to a persistent folder and run `/bin/sh scripts/install.sh`. Verify the current desktop's installed/enabled entry and live menu bar rather than relying on an installation message. [Installation](docs/INSTALL.md).
+Give Codex the repository URL and ask: **Install this plugin: https://github.com/Mnagalah/codex-signal**
 
-First-install reliability is being improved; a CLI registration alone is not a completed fresh-Mac acceptance.
+For a first installation, use the [0.2.9 prebuilt macOS package](https://github.com/Mnagalah/codex-signal/releases/download/v0.2.9/codex-signal-v0.2.9-macos-arm64.zip). It targets Apple Silicon Macs with macOS 14+ and Codex desktop. Python 3.10+ is prepared with permission if missing; users do not need Git, Xcode or pip packages.
+
+**Installing this repository? Follow [the Codex installation instructions](docs/INSTALL-WITH-CODEX.md).** Download and extract the release ZIP, run `/bin/sh scripts/install.sh`, activate the installed status tool, then require `/bin/sh scripts/install.sh --verify` to report `stage: ready`. A successful registration is not a finished installation. No resident setup skill is installed. [Python preparation](docs/PYTHON-SETUP.md).
+
+Version **0.2.9 is a macOS prerelease** for fresh-Mac installation testing. [Release notes](https://github.com/Mnagalah/codex-signal/releases/tag/v0.2.9).
 
 ## Know when a chat needs you
 

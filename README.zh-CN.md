@@ -4,11 +4,15 @@
 
 [English](README.md) · [安装](docs/INSTALL.md) · [隐私](docs/PRIVACY.md)
 
-## 安装 macOS 版
+## 交给 Codex 安装
 
-使用 `codex-signal-v0.2.7-macos-arm64.zip`，需要 Apple Silicon、macOS 14+、Python 3.10+ 和 Codex 桌面。解压到持久目录后运行 `/bin/sh scripts/install.sh`；核对当前桌面插件列表和实际菜单栏，不以一条“安装成功”消息代替验收。[安装说明](docs/INSTALL.md)。
+把仓库链接发给 Codex，说：**帮我安装这个插件：https://github.com/Mnagalah/codex-signal**
 
-首次安装可靠性仍在改进，CLI 注册成功不等于干净 Mac 首装已通过。
+首次安装使用 [0.2.9 预编译 macOS 安装包](https://github.com/Mnagalah/codex-signal/releases/download/v0.2.9/codex-signal-v0.2.9-macos-arm64.zip)，适用于 Apple Silicon Mac、macOS 14+ 和 Codex 桌面。缺少 Python 3.10+ 时经授权准备；用户无需 Git、Xcode 或 pip 依赖。
+
+**执行安装的 Codex 请遵循[安装指引](docs/INSTALL-WITH-CODEX.md)。** 下载并解压 Release ZIP，运行 `/bin/sh scripts/install.sh`，激活已安装的状态工具，再执行 `/bin/sh scripts/install.sh --verify`。只有 `stage: ready` 才算完成，注册成功不等于已能使用。安装和环境准备由一次性脚本完成，不安装或常驻首次设置技能。
+
+**0.2.9 是用于全新 Mac 安装测试的 macOS 预发布版。** [版本说明](https://github.com/Mnagalah/codex-signal/releases/tag/v0.2.9)。
 
 ## 颜色告诉你下一步
 

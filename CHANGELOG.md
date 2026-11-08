@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.9 — macOS installation (prerelease)
+
+- Resolve and privately pin a compatible Python before stdio startup; use the system shell with a plugin-specific minimal PATH, not a bare Python lookup. Add explicit official-runtime preparation with signature verification and permission gates.
+- Keep one-time environment preparation in installation scripts, without a resident setup skill. Require a live readiness nonce after registration, connection and menu startup. Invalid/empty CLI results or stale status files cannot report completed setup.
+- Retain local/downloaded sources in immutable managed storage so deleting a download folder cannot remove the registered marketplace. Preserve existing Git tracking and prior payloads referenced by live clients.
+- Keep distribution, CI, documentation and current source dedicated to macOS. Preserve existing chat IDs, numbering and local records.
+
 ## 0.2.7 — startup and reconnect recovery
 
 - Revalidate saved and recently observed host/chat identities after a new observer session; receive the desktop's current local/remote followed-ID replay without scanning history or starting/resuming tasks.

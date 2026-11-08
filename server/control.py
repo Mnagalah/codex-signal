@@ -9,7 +9,7 @@ import re
 import time
 import uuid
 
-ACTIONS = {"enable", "disable", "reload", "inspect", "exercise", "notice-demo", "inspect-settings", "choose-emoji", "exercise-menu", "exercise-project", "compact-on", "compact-off"}
+ACTIONS = {"enable", "disable", "reload", "check", "inspect", "exercise", "notice-demo", "inspect-settings", "choose-emoji", "exercise-menu", "exercise-project", "compact-on", "compact-off"}
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 
 

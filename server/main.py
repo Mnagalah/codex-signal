@@ -40,7 +40,7 @@ else:
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.7"
+VERSION = "0.2.9"
 RESUME_SNAPSHOT_WAIT = 5.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
@@ -859,7 +859,9 @@ class Plugin:
     def consume_commands(self) -> None:
         for value in pending(self.data):
             accepted = True
-            if value["action"] == "exercise-project":
+            if value["action"] == "check":
+                self.publish()  # Fresh nonce acknowledgement, not cached success.
+            elif value["action"] == "exercise-project":
                 accepted = self.start_resume_probe(value["id"],value.get("projectId"))
             elif value["action"] in ("compact-on", "compact-off"):
                 self.consume_ui({"event":"compact_enable" if value["action"] == "compact-on" else "compact_disable"})
@@ -885,7 +887,9 @@ class Plugin:
             receipts = self.data / "command-results"
             receipts.mkdir(mode=0o700, parents=True, exist_ok=True)
             write_json(receipts / (value["id"] + ".json"), {"id": value["id"], "accepted": accepted, "action": value["action"],
-                "enabled": self.enabled, "nextVersion": latest_release(ROOT).name if value["action"] == "reload" else VERSION})
+                "enabled": self.enabled, "nextVersion": latest_release(ROOT).name if value["action"] == "reload" else VERSION,
+                **({"pluginVersion": VERSION, "connected": self.connected, "menuBarReady": self.ui_ready,
+                    "health": self.adapter_health()} if value["action"] == "check" else {})})
             if self.reload_requested:
                 break
 

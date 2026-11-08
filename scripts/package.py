@@ -5,7 +5,7 @@ import argparse,json,re,stat,subprocess,zipfile
 ROOT=Path(__file__).resolve().parents[1]
 FIXED=['plugin.json','mcp.json','platform.json','codex-status-layout.html','project-icons.json','README.md','README.zh-CN.md','CHANGELOG.md','CONTRIBUTING.md','SECURITY.md','LICENSE','THIRD-PARTY-NOTICES.md','.gitignore','.agents/plugins/marketplace.json','.github/workflows/validate.yml','native/Package.swift']
 PATTERNS=['server/*.py','server/*.json','server/vendor/**/*.py','server/vendor/**/LICENSE','server/vendor/**/UPSTREAM.json','server/vendor/**/py.typed','tests/*.py','tests/*.cjs','native/Sources/MenuBar/*.swift','native/Tests/MenuBarTests/*.swift','scripts/*.py','scripts/*.sh','docs/*.md']
-FORBIDDEN={'slots.json','settings.json','status.json','auth.json','.env','monitor.lock','recovery.json'}
+FORBIDDEN={'slots.json','settings.json','status.json','auth.json','.env','monitor.lock','recovery.json','python-path'}
 PRIVATE=[re.compile(rb'/' + rb'Users/'),re.compile(rb'01[0-9a-f]{6}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',re.I)]
 def inventory(target):
     selected={ROOT/p for p in FIXED}

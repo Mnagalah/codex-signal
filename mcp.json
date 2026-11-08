@@ -3,11 +3,14 @@
   "mcpServers": {
     "menu_status": {
       "type": "stdio",
-      "command": "python3",
+      "command": "sh",
       "args": [
-        "${PLUGIN_ROOT}/scripts/start.py"
+        "${PLUGIN_ROOT}/scripts/launch.sh"
       ],
-      "cwd": "${PLUGIN_ROOT}"
+      "cwd": "${PLUGIN_ROOT}",
+      "env": {
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin"
+      }
     }
   }
 }
