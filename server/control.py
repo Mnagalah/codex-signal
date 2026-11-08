@@ -120,8 +120,8 @@ def main() -> None:
             receipt.unlink()
             return
         time.sleep(0.1)
-    # Leave the specific request queued if the MCP service is not loaded yet.
-    raise SystemExit("插件尚未响应。请求已保留；需先在 Codex 中加载带控制功能的插件版本，无需重启整个 Codex。")
+    # A timeout cannot distinguish queued, applied, or claimed-before-crash.
+    raise SystemExit("插件尚未确认此请求。请求可能仍在排队，也可能已处理但未返回确认；请检查插件状态后重试，无需重启 Codex。")
 
 
 if __name__ == "__main__":

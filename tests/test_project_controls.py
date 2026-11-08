@@ -100,7 +100,7 @@ class ProjectControlTests(unittest.TestCase):
             p=self.plugin()
             try:
                 p.notice_target=('notice','remote::b')
-                p.pending_notice={'id':'n','project':{'id':'remote::p'}}
+                p.pending_notice={'id':'n','project':{'id':'remote::p'},'chat':{'id':'remote::b','status':'input'}}
                 p.consume_ui({'event':'project_disable','projectId':'not-a-project'})
                 self.assertFalse(p.paused_projects);self.assertFalse((Path(tmp)/'settings.json').exists())
                 p.set_project_updates('p',False)

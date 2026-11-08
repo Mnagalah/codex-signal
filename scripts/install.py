@@ -1,6 +1,7 @@
 """Register one desktop plugin; independently verify live first-setup readiness."""
 from __future__ import annotations
 import argparse
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -123,6 +124,17 @@ def preflight():
 
 
 def install(cli, plugin_id, version):
+    # Serialize source/catalogue/cache mutations for this profile. The monitor
+    # lock is deliberately separate: installation must not stop live clients.
+    directory = runtime_paths.codex_home()/'plugins'
+    directory.mkdir(parents=True, exist_ok=True)
+    with (directory/'codex-signal-install.lock').open('a+') as lock:
+        os.fchmod(lock.fileno(), 0o600)
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return install_locked(cli, plugin_id, version)
+
+
+def install_locked(cli, plugin_id, version):
     name, market = plugin_id.split('@',1)
     config_path = runtime_paths.desktop_config()
     config = tomllib.loads(config_path.read_text()) if config_path.exists() else {}

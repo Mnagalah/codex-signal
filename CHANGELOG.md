@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Reject delayed snapshots from disconnected owners even after a replacement takes over.
+- Recover the menu bar after launch failures or renderer exits, and prevent stalled IPC/renderer writes from blocking controls and state recovery.
+- Preserve exact-turn read intent through stream gaps, project pause and hot replacement without suppressing later turns.
+- Remove chats that become ephemeral or child conversations, including their stale alert baselines.
+- Keep enabled alerts when simultaneous updates include a disabled alert type.
+- Serialize concurrent setup attempts so they reuse one complete immutable payload.
+- Report command timeouts as unconfirmed instead of claiming a consumed request is still queued.
+
 ## 0.2.9
 
 - Improve Python detection and startup by validating and reusing an installed interpreter, with setup guidance for missing runtimes.

@@ -88,7 +88,7 @@ class GridTests(unittest.TestCase):
 
     def test_inspection_pipe_failure_is_local_and_does_not_end_mcp(self):
         class Broken:
-            def write(self,*args):raise BrokenPipeError()
+            def fileno(self):raise BrokenPipeError()
         with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'CODEX_MENU_STATUS_DATA':tmp,'CODEX_MENU_STATUS_CAPTURE':'1'}):
             plugin = Plugin(argparse.Namespace(no_ui=True, seconds=0))
             try:

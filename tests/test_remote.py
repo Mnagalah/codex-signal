@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import sys
+import socket
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -24,13 +25,6 @@ def snapshot(kind='active', unread=False, terminal='inProgress'):
         'turns':[{'id':'turn-1','status':terminal,'items':[{'content':'must not persist'}]}]}}
 
 
-class FakeSocket:
-    def __init__(self): self.sent=[]
-    def sendall(self,data): self.sent.append(json.loads(data[4:]))
-    def shutdown(self,*args): pass
-    def close(self): pass
-
-
 class FakeIPC:
     client_id='own'
     def __init__(self):self.following=set();self.calls=[]
@@ -44,13 +38,17 @@ class FakeIPC:
 
 class RemoteTests(unittest.TestCase):
     def test_subscriptions_and_cleanup_keep_host_identity(self):
-        ipc=DesktopIPC(pathlib.Path('unused'));sock=FakeSocket();ipc.socket=sock;ipc.client_id='own'
+        ipc=DesktopIPC(pathlib.Path('unused'));sock,peer=socket.socketpair()
+        self.addCleanup(sock.close);self.addCleanup(peer.close)
+        sock.setblocking(False);peer.setblocking(False);ipc.socket=sock;ipc.client_id='own'
         ipc.follow(TID);ipc.follow(TID,host_id=HOST)
         self.assertEqual(ipc.following,{('local',TID),(HOST,TID)})
         ipc.close()
-        released={m['params']['hostId'] for m in sock.sent if m['params']['following'] is False}
+        received=DesktopIPC(pathlib.Path('unused'));received.socket=peer
+        messages=list(received.messages())
+        released={m['params']['hostId'] for m in messages if m['params']['following'] is False}
         self.assertEqual(released,{'local',HOST})
-        self.assertTrue(all(m['method']=='thread-stream-following-changed' for m in sock.sent))
+        self.assertTrue(all(m['method']=='thread-stream-following-changed' for m in messages))
 
     def test_remote_identity_uses_registered_host_root_and_actual_label(self):
         with tempfile.TemporaryDirectory() as tmp:

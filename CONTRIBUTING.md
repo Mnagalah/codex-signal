@@ -38,6 +38,8 @@ Local marketplace deployments are exported with `scripts/stage-deployment.py`. K
 
 ## Implementation changes
 
+Read the [state-machine map](docs/STATE-MACHINES.md) before changing runtime transitions, recovery, controls or setup. Update its states, invariants, transition tables and issue/regression references in the same change; keep source implementation, automated checks, installed-device acceptance and release status distinct.
+
 Preserve host/chat identities, project-local visible numbering, historical slots, acknowledgements, read semantics and click targets. Changes to native interactions should cover global and project controls, compact views, alerts, emoji selection and interruptible open/close transitions. Check normal and reduced motion separately.
 
 Install runtime prerequisites with user authorization. Keep installed version payloads intact for live clients, and distinguish automated checks, actual native inspection and fresh-device acceptance.

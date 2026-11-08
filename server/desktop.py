@@ -5,12 +5,15 @@ import copy
 import json
 import pathlib
 import socket
+import select
 import struct
 import uuid
 if __package__:
     from .state import split_thread_key, thread_key
+    from .transport import write_all
 else:
     from state import split_thread_key, thread_key
+    from transport import write_all
 
 
 class DesktopIPC:
@@ -19,17 +22,21 @@ class DesktopIPC:
     ARCHIVE_VERSION = 2
     UNARCHIVE_VERSION = 1
     MAX_FRAME = 0x10000000
+    SEND_TIMEOUT = 1.0
 
     def __init__(self, path: pathlib.Path):
         self.path, self.socket = path, None
         self.client_id = "initializing-client"
+        self.write_failed = False
         self.following: set[tuple[str, str]] = set()
 
     def connect(self) -> None:
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.write_failed = False
         self.socket.settimeout(3)
         try:
             self.socket.connect(str(self.path))
+            self.socket.setblocking(False)
             self.send({"type": "request", "requestId": str(uuid.uuid4()),
                        "sourceClientId": self.client_id, "method": "initialize", "version": 0,
                        "params": {"clientType": "codex-menu-status-plugin"}, "timeoutMs": 5000})
@@ -37,13 +44,18 @@ class DesktopIPC:
             self.socket.close()
             self.socket = None
             raise
-        self.socket.settimeout(None)
 
     def send(self, message: dict) -> None:
         data = json.dumps(message, separators=(",", ":")).encode()
-        if self.socket is None:
+        if self.socket is None or self.write_failed:
             raise ConnectionError("Desktop IPC is disconnected")
-        self.socket.sendall(struct.pack("<I", len(data)) + data)
+        # Reads have no idle deadline; writes must not freeze controls/recovery.
+        try:
+            write_all(self.socket.fileno(), struct.pack("<I", len(data)) + data,
+                      timeout=self.SEND_TIMEOUT)
+        except OSError:
+            self.write_failed = True  # A partial frame cannot be retried in place.
+            raise
 
     def follow(self, thread_id: str, enabled: bool = True, *, host_id: str = "local") -> None:
         if self.client_id == "initializing-client":
@@ -59,7 +71,13 @@ class DesktopIPC:
     def messages(self):
         buffer = bytearray()
         while self.socket is not None:
-            data = self.socket.recv(262144)
+            sock = self.socket
+            if not select.select([sock], [], [], 0.5)[0]:
+                continue  # Idle is not EOF and has no receive deadline.
+            try:
+                data = sock.recv(262144)
+            except (BlockingIOError, InterruptedError):
+                continue
             if not data:
                 return
             buffer.extend(data)
@@ -95,7 +113,7 @@ class DesktopIPC:
 
     def close(self) -> None:
         if self.socket is not None:
-            for host_id, thread_id in tuple(self.following):
+            for host_id, thread_id in (() if self.write_failed else tuple(self.following)):
                 try:
                     self.follow(thread_id, False, host_id=host_id)
                 except OSError:

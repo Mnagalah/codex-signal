@@ -28,7 +28,7 @@ class NoticeTracker:
             self.phases.pop(key, None)
             self.visible.pop(key, None)
 
-    def observe(self, states, groups, connected, language, identities=None):
+    def observe(self, states, groups, connected, language, identities=None, allowed_phases=None):
         current = {}
         for project in groups:
             identity = {key: value for key, value in project.items() if key != 'threads'}
@@ -36,6 +36,10 @@ class NoticeTracker:
             for chat in project['threads']:
                 current[chat['id']] = {'project': identity, 'chat': chat}
         result = None
+        allowed = self.PHASES if allowed_phases is None else allowed_phases
+        excluded = {key for key, state in states.items()
+                    if state.metadata.get('ephemeral') or state.metadata.get('parentThreadId')}
+        self.forget(excluded)
         if connected:
             for key, state in states.items():
                 if not state.valid or state.metadata.get('ephemeral') or state.metadata.get('parentThreadId'):
@@ -46,7 +50,7 @@ class NoticeTracker:
                 previous = self.phases.get(key)
                 self.phases[key] = phase
                 subject = current.get(key) or self.visible.get(key)
-                if previous is None or previous == phase or phase not in self.PHASES or subject is None:
+                if previous is None or previous == phase or phase not in allowed or subject is None:
                     continue  # First snapshot establishes a baseline, not a replay.
                 result = copy.deepcopy(subject)
                 if identities and key in identities:
@@ -58,5 +62,5 @@ class NoticeTracker:
         # A runtime may publish idle before the final turn arrives. Retain the
         # last visible subject through that gap, including already-viewed ends.
         self.visible = {key: value for key, value in self.visible.items() if key in states}
-        self.visible.update(copy.deepcopy(current))
+        self.visible.update(copy.deepcopy({key: value for key, value in current.items() if key not in excluded}))
         return result  # One card: the latest edge replaces earlier concurrent ones.

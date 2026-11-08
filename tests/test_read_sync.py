@@ -18,7 +18,7 @@ def snapshot(turn='turn-a',phase='completed',unread=True,revision=1):
 
 class ReadSyncFixture(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.env=patch.dict(os.environ,{'CODEX_MENU_STATUS_DATA':self.tmp.name,'CODEX_SIGNAL_CONFIG':self.tmp.name+'/no-config.toml','CODEX_SIGNAL_DESKTOP_STATE':self.tmp.name+'/no-desktop.json'});self.env.start()
+        self.tmp=tempfile.TemporaryDirectory();self.env=patch.dict(os.environ,{'CODEX_HOME':self.tmp.name+'/codex','CODEX_MENU_STATUS_DATA':self.tmp.name,'CODEX_SIGNAL_CONFIG':self.tmp.name+'/no-config.toml','CODEX_SIGNAL_DESKTOP_STATE':self.tmp.name+'/no-desktop.json'});self.env.start()
         self.p=Plugin(argparse.Namespace(no_ui=True,seconds=0));self.p.ipc=IPC();self.p.connected=True
         self.p.metadata=types.SimpleNamespace(identities=lambda states:{k:{'id':thread_key(s.host_id,'project'),'name':'Sample project','markerType':'icon','marker':'folder'} for k,s in states.items()})
         self.add_state();self.p.publish()

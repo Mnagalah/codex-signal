@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import fcntl
 import json
+import io
 import os
 import pathlib
 import queue
@@ -18,6 +19,7 @@ from urllib.parse import urlencode
 
 if __package__:
     from .desktop import DesktopIPC, DesktopMetadata
+    from .transport import write_all
     from .state import ThreadState, WatchRegistry, thread_key, split_thread_key
     from .control import enqueue, latest_release, pending, write_json
     from .localization import DesktopLanguage, connection_text, text
@@ -29,6 +31,7 @@ if __package__:
     from . import runtime_paths
 else:
     from desktop import DesktopIPC, DesktopMetadata
+    from transport import write_all
     from state import ThreadState, WatchRegistry, thread_key, split_thread_key
     from control import enqueue, latest_release, pending, write_json
     from localization import DesktopLanguage, connection_text, text
@@ -40,8 +43,9 @@ else:
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.9"
+VERSION = "0.2.10"
 RESUME_SNAPSHOT_WAIT = 5.0
+RENDERER_WRITE_TIMEOUT = 1.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 
 
@@ -103,11 +107,16 @@ class Plugin:
         self.refresh_pending = False
         self.pending_discovery: set[str] = set()
         self.pending_unread: set[str] = set()
+        self.pending_reads: dict[str, str] = {}  # Explicit read intent, scoped to one known terminal turn.
         self.protocol_errors: set[tuple[str, str]] = set()
         self.event_counts: dict[str, int] = {}
         self.ui_error: str | None = None
         self.ui_ready = False
         self.ui_layout = None
+        self.renderer_broken = False
+        self.renderer_retry_at = 0.0
+        self.renderer_failures = 0
+        self.renderer_started = 0.0
         self.enabled = load_json(self.settings_path).get("enabled", True) is not False
         self.reload_requested = False
         self.update_error = None
@@ -182,18 +191,66 @@ class Plugin:
         self.project_by_thread.update({key: p["id"] for key, p in self.metadata.identities(self.states).items()})
         if self.enabled:
             self.begin_snapshot_handoff()
-        if not self.args.no_ui:
-            binary = ROOT / "bin/codex-menu-bar"
-            command = [str(binary)]
-            if not binary.is_file():
-                self.detail = "菜单栏组件尚未编译"
+        self.ensure_renderer()
+
+    def renderer_failed(self, *, now=None):
+        now = time.monotonic() if now is None else now
+        if not self.renderer_broken:
+            self.renderer_failures += 1
+            self.renderer_retry_at = now + min(30, 2 ** min(self.renderer_failures - 1, 5))
+        self.renderer_broken = True
+        self.ui_ready = False
+        self.ui_error = "菜单栏组件连接中断；状态服务仍在运行"
+        self.notice_target = self.notice_phase = None
+
+    def ensure_renderer(self, *, now=None):
+        if self.args.no_ui or not self.primary:
+            return
+        now = time.monotonic() if now is None else now
+        if self.renderer:
+            if self.renderer.poll() is None and not self.renderer_broken:
+                if self.ui_ready and now - self.renderer_started >= 10:
+                    self.renderer_failures = 0
+                return
+            self.renderer_failed(now=now)
+            child, self.renderer = self.renderer, None
+            # Retire only our renderer. Its EOF may already be queued; source
+            # identity prevents that callback from affecting the next child.
+            if child.poll() is None:
+                try:
+                    child.terminate()
+                except ProcessLookupError:
+                    pass  # It exited between poll and termination.
+                try:
+                    child.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait(timeout=1)
             else:
-                renderer_env = dict(os.environ)
-                if os.environ.get("CODEX_MENU_STATUS_CAPTURE") == "1":
-                    renderer_env["CODEX_MENU_UI_CAPTURE_DIR"] = str(self.data / "render-check")
-                self.renderer = subprocess.Popen(command, stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE, stderr=sys.stderr, text=True, bufsize=1, env=renderer_env)
-                self.start_reader("ui", self.renderer.stdout)
+                child.wait()
+            for stream in (child.stdin, child.stdout):
+                if stream:
+                    try:
+                        stream.close()
+                    except OSError:
+                        pass
+        if now < self.renderer_retry_at:
+            return
+        self.renderer_broken = False
+        renderer_env = dict(os.environ)
+        if os.environ.get("CODEX_MENU_STATUS_CAPTURE") == "1":
+            renderer_env["CODEX_MENU_UI_CAPTURE_DIR"] = str(self.data / "render-check")
+        try:
+            self.renderer = subprocess.Popen([str(ROOT / "bin/codex-menu-bar")], stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=sys.stderr, text=True, bufsize=1, env=renderer_env)
+        except OSError:
+            self.renderer_failed(now=now)
+            return
+        self.renderer_started = now
+        self.ui_ready = False
+        self.ui_layout = None
+        self.last_ui = None  # A new process needs the full state, even if unchanged.
+        self.start_reader("ui", self.renderer.stdout)
 
     def connect(self) -> None:
         path = runtime_paths.desktop_socket()
@@ -282,8 +339,8 @@ class Plugin:
             return True
         if status == "disconnected":
             affected = {key for key, state in self.states.items() if state.owner == client}
+            self.recovery.offline_owners.add(client)
             if affected:
-                self.recovery.offline_owners.add(client)
                 self.notices.forget(affected)
                 for key in affected:
                     self.states[key].valid = False
@@ -371,9 +428,10 @@ class Plugin:
             if (method == "thread-read-state-changed" and key in self.states
                     and message.get("version") == DesktopIPC.READ_VERSION):
                 if params.get("hasUnreadTurn") is True:
+                    self.pending_reads.pop(key, None)
                     self.pending_unread.add(key)
                 elif params.get("hasUnreadTurn") is False:
-                    self.pending_unread.discard(key)
+                    self.remember_read(self.states[key])
             return
         if method == "thread-stream-following-changed" and params.get("following") is True:
             if message.get("sourceClientId") != ipc.client_id and (host, tid) not in ipc.following:
@@ -403,7 +461,16 @@ class Plugin:
                 if baseline or owner_changed:
                     self.notices.forget({key})
                 self.recovery.remember(key, state.metadata)
-                self.recovery.offline_owners.intersection_update(s.owner for s in self.states.values() if s.owner)
+                # Disconnected owners stay fenced for this IPC session, even
+                # after all their threads have moved to a replacement owner.
+            if state.valid and key in self.pending_reads:
+                turn = state.latest_turn
+                turn_id = turn.get("turnId") or turn.get("id")
+                if state.phase() in ("completed", "failed", "stopped") and turn_id == self.pending_reads[key]:
+                    self.registry.mark_seen(state)
+                    state.metadata["hasUnreadTurn"] = False
+                if turn_id or state.phase() in ("running", "approval", "input"):
+                    self.pending_reads.pop(key, None)
             if state.valid and key in self.pending_unread:
                 if state.metadata.get("hasUnreadTurn") is True:
                     self.registry.mark_unread(state)
@@ -416,13 +483,14 @@ class Plugin:
                 self.protocol_errors.discard(("*", "read"))
                 if state:
                     if params["hasUnreadTurn"]:
+                        self.pending_reads.pop(key, None)
                         state.metadata["hasUnreadTurn"] = True
                         if state.valid and state.latest_turn:
                             self.registry.mark_unread(state)
                         else:
                             self.pending_unread.add(key)
                     else:
-                        self.pending_unread.discard(key)
+                        self.remember_read(state)
                         # Opening an already-finished chat is an explicit read
                         # edge. A repeated follower snapshot can still carry
                         # unread=True, so acknowledge only this known turn.
@@ -433,15 +501,26 @@ class Plugin:
                                 and (turn.get("turnId") or turn.get("id"))):
                             self.registry.mark_seen(state)
                             state.metadata["hasUnreadTurn"] = False
+                            self.pending_reads.pop(key, None)
                     self.refresh_pending = True
             else:
                 self.protocol_errors.add((key, "read"))
                 self.refresh_pending = True
 
+    def remember_read(self, state):
+        self.pending_unread.discard(state.key)
+        turn = state.latest_turn
+        turn_id = turn.get("turnId") or turn.get("id")
+        # Never acknowledge from stale metadata. Retain only a user's intent
+        # for a previously known terminal turn, then confirm against fresh truth.
+        if (turn_id and turn.get("status") in ("completed", "failed", "interrupted")
+                and (state.metadata.get("threadRuntimeStatus") or {}).get("type") != "active"):
+            self.pending_reads[state.key] = turn_id
+
     def reload_handoff(self) -> list[dict]:
-        # Keep recent identity/project context, never old transcript, turn or
-        # unread values. Fresh snapshots still determine what becomes visible.
-        return [{"key": key, "unreadEdge": key in self.pending_unread, "projectMetadata": {k: state.metadata[k]
+        # Keep identity/context and explicit read intents, not cached task or
+        # unread truth. A readTurn is confirmed against a fresh snapshot first.
+        return [{"key": key, "unreadEdge": key in self.pending_unread, "readTurn": self.pending_reads.get(key), "projectMetadata": {k: state.metadata[k]
                     for k in ("workspaceKind", "cwd", "projectId") if k in state.metadata}}
                 for key, state in self.states.items()
                 if not state.metadata.get("ephemeral") and not state.metadata.get("parentThreadId")]
@@ -458,6 +537,7 @@ class Plugin:
         self.resume_snapshots.pop(key, None)
         self.pending_discovery.discard(key)
         self.pending_unread.discard(key)
+        self.pending_reads.pop(key, None)
         self.recovery.cancel({key})
         self.recovery.recent.pop(key, None)
         self.protocol_errors = {(k, channel) for k, channel in self.protocol_errors if k != key}
@@ -467,7 +547,10 @@ class Plugin:
         if self.notice_target and self.notice_target[1] == key:
             self.notice_target = None
         if self.ipc and (host, tid) in self.ipc.following:
-            self.ipc.follow(tid, False, host_id=host)
+            try:
+                self.ipc.follow(tid, False, host_id=host)
+            except OSError:
+                self.disconnect("状态接口暂不可用，正在重连")
 
     def restore_thread(self, key: str) -> None:
         self.registry.hidden.pop(key, None)
@@ -502,7 +585,11 @@ class Plugin:
                 self.recovery.remember(key, state.metadata)
             self.pending_discovery.add(key)
             if item.get("unreadEdge"):
+                self.pending_reads.pop(key, None)
                 self.pending_unread.add(key)
+            elif isinstance(item.get("readTurn"), str) and item["readTurn"]:
+                self.pending_unread.discard(key)
+                self.pending_reads[key] = item["readTurn"]
         # Project identity is available before deciding which followers to keep
         # paused, including remote root-path assignments.
         self.project_by_thread.update({key: p["id"] for key, p in self.metadata.identities(self.states).items()})
@@ -597,10 +684,19 @@ class Plugin:
         if self.enabled and self.ipc:
             for host, tid in tuple(self.ipc.following):
                 if self.project_paused(thread_key(host, tid)):
-                    self.ipc.follow(tid, False, host_id=host)
+                    try:
+                        self.ipc.follow(tid, False, host_id=host)
+                    except OSError:
+                        self.disconnect("状态接口暂不可用，正在重连")
+                        break
+        if self.pending_notice:
+            subject = self.states.get(self.pending_notice["chat"]["id"])
+            if subject and (subject.metadata.get("ephemeral") or subject.metadata.get("parentThreadId")):
+                self.pending_notice = None
         if self.enabled:
-            notice = self.notices.observe(active_states, tracked_groups, self.connected, self.language.language, identities=projects)
-            if notice and notice["chat"]["status"] in self.notification_states:
+            notice = self.notices.observe(active_states, tracked_groups, self.connected, self.language.language,
+                identities=projects, allowed_phases=self.notification_states)
+            if notice:
                 self.pending_notice = notice
                 self.notice_emitted += 1
         else:
@@ -627,13 +723,7 @@ class Plugin:
         if result != self.last_ui:
             atomic_json(self.data / "status.json", result)
             self.last_ui = result
-            if self.renderer and self.renderer.poll() is None:
-                try:
-                    self.renderer.stdin.write(json.dumps(result, ensure_ascii=False) + "\n")
-                    self.renderer.stdin.flush()
-                except (BrokenPipeError, OSError):
-                    self.ui_ready = False
-                    self.ui_error = "菜单栏组件连接中断；状态服务仍在运行"
+            self.write_renderer(result)
         if self.pending_notice and self.ui_ready and self.emit_notice(self.pending_notice):
             self.pending_notice = None
         saved = self.registry.saved()
@@ -654,22 +744,32 @@ class Plugin:
                 atomic_json(self.data / "recovery.json", recent)
                 self.last_recovery_save = json.loads(json.dumps(recent))
 
-    def emit_notice(self, notice):
-        if not self.renderer or self.renderer.poll() is not None:
+    def write_renderer(self, value):
+        if not self.renderer or self.renderer_broken or self.renderer.poll() is not None:
             return False
         try:
-            self.renderer.stdin.write(json.dumps({"kind":"status_notice","notice":notice}, ensure_ascii=False) + "\n")
-            self.renderer.stdin.flush()
+            line = json.dumps(value, ensure_ascii=False) + "\n"
+            stream = self.renderer.stdin
+            if isinstance(stream, io.StringIO):
+                stream.write(line)  # In-memory transport used by isolated fixtures.
+            else:
+                fd = stream.fileno()
+                os.set_blocking(fd, False)
+                write_all(fd, line.encode("utf-8"), timeout=RENDERER_WRITE_TIMEOUT)
+            return True
+        except OSError:
+            self.renderer_failed()
+            return False
+
+    def emit_notice(self, notice):
+        if self.write_renderer({"kind":"status_notice","notice":notice}):
             # Only this delivered card can authorize a notice click. It remains
             # routable if Codex has already read/removed the completed capsule.
             self.notice_target = ((notice["id"], notice["chat"]["id"])
                                   if notice.get("source") == "automatic" else None)
             self.notice_phase = notice["chat"].get("status") if notice.get("source") == "automatic" else None
             return True
-        except (OSError, BrokenPipeError):
-            self.ui_ready = False
-            self.ui_error = "菜单栏组件连接中断；状态服务仍在运行"
-            return False
+        return False
 
     def consume_ui(self, message: dict, *, _probe=False) -> None:
         event, tid = message.get("event"), message.get("threadId")
@@ -850,11 +950,8 @@ class Plugin:
                 "restoredProjectEnabled":probe.project_id not in self.paused_projects,"nativeInspectionRequestId":probe.ticket}
         root=self.data/"render-check";root.mkdir(mode=0o700,parents=True,exist_ok=True)
         atomic_json(root/("project-resume-"+probe.ticket+".json"),report)
-        if completed and self.renderer and self.renderer.poll() is None:
-            try:
-                self.renderer.stdin.write(json.dumps({"kind":"inspect_layout","requestId":probe.ticket})+"\n")
-                self.renderer.stdin.flush()
-            except (OSError,BrokenPipeError):pass
+        if completed:
+            self.write_renderer({"kind":"inspect_layout","requestId":probe.ticket})
 
     def consume_commands(self) -> None:
         for value in pending(self.data):
@@ -875,13 +972,8 @@ class Plugin:
                 accepted = bool(self.ui_ready and self.renderer and self.renderer.poll() is None
                                 and os.environ.get("CODEX_MENU_STATUS_CAPTURE") == "1")
                 if accepted:
-                    try:
-                        kind = {"inspect":"inspect_layout","exercise":"exercise_toggle","inspect-settings":"inspect_settings","choose-emoji":"choose_emoji","exercise-menu":"exercise_menu_layout"}[value["action"]]
-                        self.renderer.stdin.write(json.dumps({"kind": kind, "requestId": value["id"]}) + "\n")
-                        self.renderer.stdin.flush()
-                    except (BrokenPipeError, OSError):
-                        accepted = self.ui_ready = False
-                        self.ui_error = "菜单栏组件连接中断；状态服务仍在运行"
+                    kind = {"inspect":"inspect_layout","exercise":"exercise_toggle","inspect-settings":"inspect_settings","choose-emoji":"choose_emoji","exercise-menu":"exercise_menu_layout"}[value["action"]]
+                    accepted = self.write_renderer({"kind": kind, "requestId": value["id"]})
             else:
                 self.control(value["action"])
             receipts = self.data / "command-results"
@@ -951,6 +1043,7 @@ class Plugin:
                     self.elect()
                     election_at = now + 1
                 if self.primary:
+                    self.ensure_renderer(now=now)
                     self.consume_commands()
                     self.tick_resume_probe(time.monotonic())
                     if not self.running:
@@ -982,16 +1075,8 @@ class Plugin:
                     elif kind in ("mcp_eof", "shutdown"):
                         self.running = False
                     elif kind == "ui_eof" and payload is self.renderer:
-                        self.ui_ready = False
-                        self.ui_error = "菜单栏组件未能保持运行；请从 Codex 桌面插件环境加载"
-                        if self.renderer:
-                            try:
-                                self.renderer.wait(timeout=1)
-                            except subprocess.TimeoutExpired:
-                                self.renderer.terminate()
-                                self.renderer.wait(timeout=3)
-                        self.renderer = None
-                    elif kind == "ui" and payload[0] is self.renderer:
+                        self.renderer_failed()
+                    elif kind == "ui" and payload[0] is self.renderer and not self.renderer_broken:
                         self.consume_ui(payload[1])
                     elif kind == "ipc":
                         self.consume_ipc(*payload)

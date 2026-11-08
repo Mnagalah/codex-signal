@@ -145,3 +145,61 @@ class SetupVerificationTests(ReadSyncFixture):
             result=setup.install(Path('/fake'),'codex-menu-status@codex-signal','0.2.8')
         self.assertEqual(result,str(catalogue))
         cli.assert_called_once_with(Path('/fake'),'plugin','list','--marketplace','codex-signal')
+
+
+class ConcurrentSetupTests(unittest.TestCase):
+    def test_simultaneous_setups_share_one_complete_immutable_payload(self):
+        # Both callers use a private fake Codex profile and a tiny public fixture.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            source, home = root/'source', root/'home'
+            (source/'scripts').mkdir(parents=True)
+            (source/'.agents/plugins').mkdir(parents=True)
+            (source/'plugin.json').write_text('{"name":"codex-menu-status","version":"0.2.9"}')
+            (source/'.agents/plugins/marketplace.json').write_text(json.dumps({
+                'name':'codex-signal','plugins':[{'source':{'path':'./'}}]}))
+            (source/'scripts/package.py').write_text(
+                "from pathlib import Path\nROOT=Path(__file__).resolve().parents[1]\n"
+                "def inventory(target):return [ROOT/'plugin.json']\n")
+            durable = home/'plugins/sources/codex-signal/codex-menu-status/0.2.9'
+            def cli(_, *args):
+                if args[:3] == ('plugin','marketplace','add'):
+                    return {'marketplaceName':'codex-signal','installedRoot':str(home/'plugins/sources/codex-signal')}
+                if args[:2] == ('plugin','add'):
+                    return {'pluginId':'codex-menu-status@codex-signal','version':'0.2.9','installedPath':str(durable)}
+                return {'installed':[{'pluginId':'codex-menu-status@codex-signal',
+                    'version':'0.2.9','installed':True,'enabled':True}]}
+            first_staged, release = threading.Event(), threading.Event()
+            rename = Path.rename
+            staged, results, errors = [], [], []
+            def paused_rename(path, target):
+                if path.name == 'package':
+                    staged.append(str(path))
+                    first_staged.set()
+                    if not release.wait(2): raise TimeoutError('fixture did not release staging')
+                return rename(path, target)
+            def run():
+                try: results.append(setup.install(Path('/fake/codex'),'codex-menu-status@codex-signal','0.2.9'))
+                except Exception as error: errors.append(error)
+            with patch.object(setup,'ROOT',source), \
+                    patch.object(setup.runtime_paths,'codex_home',return_value=home), \
+                    patch.object(setup.runtime_paths,'desktop_config',return_value=root/'config.toml'), \
+                    patch.object(setup,'cli_json',side_effect=cli), patch.object(Path,'rename',paused_rename):
+                first, second = threading.Thread(target=run), threading.Thread(target=run)
+                first.start()
+                try:
+                    self.assertTrue(first_staged.wait(2))
+                    second.start()
+                    # The second installer cannot enter the staged-directory
+                    # publish step while the first owns this profile's lock.
+                    second.join(.1)
+                    self.assertEqual(len(staged), 1)
+                finally:
+                    release.set(); first.join(3)
+                    if second.ident is not None: second.join(3)
+                self.assertFalse(first.is_alive() or second.is_alive())
+            self.assertEqual(errors, [])
+            self.assertEqual(len(results), 2)
+            self.assertEqual(len(staged), 1)
+            self.assertEqual((durable/'plugin.json').read_text(), (source/'plugin.json').read_text())
+            self.assertEqual((home/'plugins/codex-signal-install.lock').stat().st_mode & 0o777, 0o600)

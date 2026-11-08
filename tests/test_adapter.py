@@ -1,6 +1,7 @@
 import json
 import pathlib
 import struct
+import socket
 import sys
 import tempfile
 import unittest
@@ -12,11 +13,8 @@ from desktop import DesktopIPC, DesktopMetadata
 class FakeSocket:
     def __init__(self, chunks=()):
         self.chunks = iter(chunks)
-        self.sent = []
     def recv(self, _):
         return next(self.chunks, b"")
-    def sendall(self, data):
-        self.sent.append(json.loads(data[4:]))
 
 
 def frame(value):
@@ -29,18 +27,26 @@ class AdapterTests(unittest.TestCase):
         data = frame({"a": 1}) + frame({"b": 2})
         ipc = DesktopIPC(pathlib.Path("unused"))
         ipc.socket = FakeSocket([data[:2], data[2:8], data[8:]])
-        self.assertEqual(list(ipc.messages()), [{"a": 1}, {"b": 2}])
+        from unittest.mock import patch
+        with patch('desktop.select.select', return_value=([ipc.socket], [], [])):
+            self.assertEqual(list(ipc.messages()), [{"a": 1}, {"b": 2}])
 
     def test_no_execution_or_owner_capability(self):
         ipc = DesktopIPC(pathlib.Path("unused"))
-        ipc.socket = FakeSocket()
+        left, right = socket.socketpair()
+        self.addCleanup(left.close); self.addCleanup(right.close)
+        left.setblocking(False); ipc.socket = left
         ipc.acknowledge_protocol({"type": "response", "method": "initialize", "resultType": "success", "result": {"clientId": "own-client"}})
         ipc.acknowledge_protocol({"type": "client-discovery-request", "requestId": "r"})
         ipc.follow("thread")
         ipc.follow("thread", False)
-        self.assertEqual(ipc.socket.sent[0]["response"], {"canHandle": False})
-        self.assertEqual([m.get("method") for m in ipc.socket.sent[1:]], ["thread-stream-following-changed"] * 2)
-        self.assertTrue(all(m.get("sourceClientId") == "own-client" for m in ipc.socket.sent[1:]))
+        left.shutdown(socket.SHUT_WR)
+        received = DesktopIPC(pathlib.Path("unused")); received.socket = right
+        right.setblocking(False)
+        messages = list(received.messages())
+        self.assertEqual(messages[0]["response"], {"canHandle": False})
+        self.assertEqual([m.get("method") for m in messages[1:]], ["thread-stream-following-changed"] * 2)
+        self.assertTrue(all(m.get("sourceClientId") == "own-client" for m in messages[1:]))
 
     def test_project_name_is_not_directory_and_read_changes_are_not_guessed(self):
         with tempfile.TemporaryDirectory() as tmp:

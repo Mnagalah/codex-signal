@@ -233,6 +233,7 @@ class WatchRegistry:
                 continue
             m, phase = state.metadata, state.phase()
             if m.get("ephemeral") or m.get("parentThreadId"):
+                self.entries.pop(tid, None)
                 continue
             turn = state.latest_turn
             turn_id = turn.get("turnId", turn.get("id", ""))
