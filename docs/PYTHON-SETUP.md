@@ -1,20 +1,49 @@
-# Prepare Python once, then finish Signal setup
+# Python setup
 
-Signal needs Python 3.10+ with its standard library. Tomli is already included; no pip packages, Xcode or virtual environment are needed for the prebuilt Mac plugin. The MCP entry uses `/bin/sh` and resolves a private absolute interpreter pin, so it does not depend on Finder and the terminal having the same PATH.
+Codex Signal requires Python 3.10 or later with its standard library. The release package includes TOML parsing support.
 
-## Reuse an installed interpreter
+## Use an installed interpreter
 
-Run `/bin/sh scripts/python.sh`. It validates the existing pin, the current PATH, common Homebrew/Python.framework locations and an existing Codex runtime if present. It saves the validated real executable in the plugin's private `python-path` file. A removed interpreter is repaired using another compatible installed interpreter; an explicit `CODEX_SIGNAL_PYTHON` selection must itself validate.
+From the package directory, run:
 
-To choose a known interpreter, run `CODEX_SIGNAL_PYTHON=/absolute/path/to/python3 /bin/sh scripts/install.sh`. No global PATH/config change is needed. Do not choose Apple's Python 3.9 or its developer-tools stub.
+```sh
+/bin/sh scripts/python.sh
+```
 
-## Install only when no compatible runtime exists
+The resolver checks the saved interpreter, available system locations, Python.framework, Homebrew locations, and existing Codex runtimes. It validates the interpreter and records its absolute path in Signal's private `python-path` file.
 
-Ask for permission to prepare Python. On Mac, `/bin/sh scripts/install-python.sh --plan` identifies a pinned official Python.org universal2 installer. With permission, `--download` fetches it over verified HTTPS and checks the Apple installer signature and Python Software Foundation publisher. No downloaded installer is executed by the MCP launcher.
+To select a specific installed interpreter:
 
-Authorize the verified package through the macOS system installer or an approved administrative command. The script's `--install` supports an already-authorized administrator environment; otherwise it reports the required operation and stops. Credentials belong in the system's authorization UI, never in a Codex message. Do not disable Gatekeeper, strip quarantine or install Homebrew solely to obtain Python.
+```sh
+CODEX_SIGNAL_PYTHON=/absolute/path/to/python3 /bin/sh scripts/install.sh
+```
 
-After installation, rerun Signal setup as the original user. It discovers and pins the runtime before registration/activation. The installer does not claim completion until the live verification passes.
+The MCP launcher uses the recorded path with a minimal system `PATH`. If the saved interpreter has been removed, the resolver can select another compatible installation.
 
+## Prepare a missing runtime
 
-Official Mac installer source: https://www.python.org/downloads/macos/
+Review the official runtime selected by the setup script:
+
+```sh
+/bin/sh scripts/install-python.sh --plan
+```
+
+With authorization to prepare Python, download the selected installer:
+
+```sh
+/bin/sh scripts/install-python.sh --download
+```
+
+The script downloads from Python.org over HTTPS and checks the macOS installer signature and Python Software Foundation publisher. Open the verified package reported by the script and complete installation through the macOS system installer.
+
+The `--install` option is available in an already-authorized administrator environment. In a regular user environment it reports the administrator step required to continue.
+
+After installing Python, rerun Signal setup as the original user:
+
+```sh
+/bin/sh scripts/install.sh
+```
+
+Activate the installed Signal tool in Codex and complete the verification steps in [Installation](INSTALL.md#install).
+
+Official runtime information: [Python for macOS](https://www.python.org/downloads/macos/).
