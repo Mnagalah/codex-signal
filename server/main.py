@@ -26,8 +26,9 @@ if __package__:
     from .notifications import NoticeTracker
     from .resume_probe import ProjectResumeProbe
     from .lifecycle import load_plugin_class, prune_payload_modules
-    from .availability import LocalThreadAvailability
+    from .availability import LocalThreadAvailability, RemoteThreadCatalog
     from .recovery import Recovery
+    from .unread import UnreadProjection
     from . import runtime_paths
 else:
     from desktop import DesktopIPC, DesktopMetadata
@@ -38,12 +39,13 @@ else:
     from notifications import NoticeTracker
     from resume_probe import ProjectResumeProbe
     from lifecycle import load_plugin_class, prune_payload_modules
-    from availability import LocalThreadAvailability
+    from availability import LocalThreadAvailability, RemoteThreadCatalog
     from recovery import Recovery
+    from unread import UnreadProjection
     import runtime_paths
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VERSION = "0.2.10"
+VERSION = "0.2.14"
 RESUME_SNAPSHOT_WAIT = 5.0
 RENDERER_WRITE_TIMEOUT = 1.0
 UUID = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
@@ -92,7 +94,10 @@ class Plugin:
         self.states: dict[str, ThreadState] = {}
         self.registry = WatchRegistry()
         self.metadata = DesktopMetadata(runtime_paths.desktop_state())
+        self.unread = UnreadProjection()
+        self.unread_candidates: set[str] = set()
         self.availability = LocalThreadAvailability(runtime_paths.desktop_state_db())
+        self.remote_catalog = RemoteThreadCatalog(runtime_paths.desktop_catalog())
         self.language = DesktopLanguage(runtime_paths.desktop_config())
         self.connected = False
         self.detail = "正在连接 Codex"
@@ -304,8 +309,10 @@ class Plugin:
     def expect_snapshot(self, key, *, baseline=False, required=False):
         if key not in self.registry.hidden and not self.project_paused(key):
             state = self.states.get(key)
+            entry = self.registry.entries.get(key, {})
+            unread_only = key in self.unread_candidates or entry.get("phase") == "unread"
             self.recovery.expect(key, baseline=baseline,
-                required=required or (key in self.registry.entries and (state is None or not state.valid)))
+                required=not unread_only and (required or bool(entry and (state is None or not state.valid))))
 
     def retry_snapshots(self):
         if not self.enabled or not self.connected or not self.ipc:
@@ -357,6 +364,7 @@ class Plugin:
                 for key in self.recovery_keys():
                     state = self.states.get(key)
                     self.expect_snapshot(key, baseline=state is None or not state.valid)
+        self.sync_desktop_unread()
         self.retry_snapshots()
         return True
 
@@ -375,6 +383,7 @@ class Plugin:
                     self.states[key].valid = False
                 self.expect_snapshot(key, baseline=True)
             self.notices.forget(self.recovery_keys())
+            self.sync_desktop_unread()
             self.retry_snapshots()
             self.pending_discovery.clear()
             return
@@ -383,13 +392,14 @@ class Plugin:
         if self.consume_client_lifecycle(ipc, message):
             return
         method, params = message.get("method"), message.get("params", {})
-        protocols = {"thread-stream-state-changed": ("stream", DesktopIPC.STREAM_VERSION),
-                     "thread-read-state-changed": ("read", DesktopIPC.READ_VERSION),
-                     "thread-archived": ("archive", DesktopIPC.ARCHIVE_VERSION),
-                     "thread-unarchived": ("unarchive", DesktopIPC.UNARCHIVE_VERSION)}
+        protocols = {"thread-stream-state-changed": ("stream", DesktopIPC.STREAM_VERSIONS),
+                     "thread-read-state-changed": ("read", (DesktopIPC.READ_VERSION,)),
+                     "thread-archived": ("archive", (DesktopIPC.ARCHIVE_VERSION,)),
+                     "thread-unarchived": ("unarchive", (DesktopIPC.UNARCHIVE_VERSION,))}
         if method in protocols:
-            channel, expected = protocols[method]
-            if not isinstance(params, dict) or message.get("version") != expected:
+            channel, supported = protocols[method]
+            version = message.get("version")
+            if not isinstance(params, dict) or type(version) is not int or version not in supported:
                 host = params.get("hostId") if isinstance(params, dict) else None
                 tid = params.get("conversationId") if isinstance(params, dict) else None
                 key = thread_key(host, tid) if isinstance(host, str) and isinstance(tid, str) and UUID.fullmatch(tid) else "*"
@@ -415,13 +425,16 @@ class Plugin:
             self.protocol_errors.discard((key, channel))
             self.protocol_errors.discard(("*", channel))
             if method == "thread-archived":
-                if key in self.states or key in self.registry.entries or key in self.pending_discovery or (host, tid) in ipc.following:
+                if (key in self.states or key in self.registry.entries or key in self.pending_discovery
+                        or (host, tid) in ipc.following or self.unread.membership(key) is True):
                     self.hide_thread(key, "archived")
             elif key in self.registry.hidden:
                 self.restore_thread(key)
             return
         if key in self.registry.hidden:
             return  # Late snapshots/read/follower frames cannot undo retirement.
+        if method == "thread-read-state-changed" and type(params.get("hasUnreadTurn")) is bool:
+            self.unread.observe(key, params["hasUnreadTurn"])
         if self.project_paused(key):
             # Keep only explicit intent in memory while the displayed/saved
             # project stays frozen. Apply it to a fresh snapshot on resume.
@@ -457,6 +470,7 @@ class Plugin:
                 self.expect_snapshot(key, baseline=True)
                 self.refresh_pending = True
             elif state.valid:
+                self.unread_candidates.discard(key)
                 baseline = self.recovery.received(key)
                 if baseline or owner_changed:
                     self.notices.forget({key})
@@ -481,6 +495,8 @@ class Plugin:
             if message.get("version") == DesktopIPC.READ_VERSION and isinstance(params.get("hasUnreadTurn"), bool):
                 self.protocol_errors.discard((key, "read"))
                 self.protocol_errors.discard(("*", "read"))
+                self.sync_desktop_unread()
+                state = self.states.get(key)
                 if state:
                     if params["hasUnreadTurn"]:
                         self.pending_reads.pop(key, None)
@@ -530,6 +546,7 @@ class Plugin:
         state = self.states.setdefault(key, ThreadState(tid, host_id=host))
         context = {k: state.metadata[k] for k in ("workspaceKind", "cwd", "projectId") if k in state.metadata}
         self.registry.hide(key, reason, context)
+        self.unread_candidates.discard(key)
         # Retain only project context for a possible unarchive, not a deleted
         # chat's title, old turn or unread bit. Keep acknowledgements separate.
         state.metadata = dict(self.registry.hidden[key]["projectMetadata"])
@@ -626,8 +643,7 @@ class Plugin:
         # Read changes are not necessarily stream patches/broadcasts, especially
         # for remote owners. Requery every chat already observed this session:
         # a finished, read chat may have left the visible registry before it is
-        # marked unread again. Never discover IDs from opaque account buckets
-        # or enumerate history. Repeating following is a read-only snapshot.
+        # marked unread again. Repeating following is a read-only snapshot.
         for tid in tuple(self.states):
             if tid not in self.registry.hidden and not self.project_paused(tid):
                 if not self.states[tid].valid:
@@ -640,6 +656,69 @@ class Plugin:
                         self.disconnect("状态接口暂不可用，正在重连")
                         return
         self.retry_snapshots()
+
+    def sync_desktop_unread(self) -> None:
+        if not self.enabled or not self.connected or not isinstance(self.metadata, DesktopMetadata):
+            return
+        self.unread.sync(self.metadata.unread_scopes())
+        # Remote buckets require evidence that the host is connected now.
+        hosts = {"local"} | {state.host_id for state in self.states.values() if state.valid}
+        allowed = self.unread.keys() - self.registry.hidden.keys()
+        allowed = {key for key in allowed if split_thread_key(key)[0] in hosts}
+        # Native owners replay once the handshake completes. Do not discard
+        # saved remote slots before their host has had time to reappear.
+        if time.monotonic() < self.recovery.discovery_until:
+            allowed |= {key for key in self.registry.entries
+                        if self.unread.membership(key) is True and split_thread_key(key)[0] not in hosts}
+        for key in self.unread_candidates - allowed:
+            self.unread_candidates.discard(key)
+            state = self.states[key]
+            if self.project_paused(key) or state.owner is not None:
+                continue
+            self.recovery.cancel({key})
+            self.states.pop(key)
+            if self.registry.entries.get(key, {}).get("phase") == "unread":
+                self.registry.entries.pop(key)
+            if self.ipc and (state.host_id, state.id) in self.ipc.following:
+                try:
+                    self.ipc.follow(state.id, False, host_id=state.host_id)
+                except OSError:
+                    self.disconnect("状态接口暂不可用，正在重连")
+                    return
+        # Restored unread-only rows have no owner to recover; recheck their
+        # membership now rather than indefinitely retaining a stale badge.
+        for key, entry in list(self.registry.entries.items()):
+            if entry["phase"] == "unread" and key not in allowed and not self.project_paused(key):
+                self.registry.entries.pop(key)
+                self.recovery.cancel({key})
+        unresolved = {key for key in allowed - self.unread_candidates
+                      if split_thread_key(key)[0] in hosts and (key not in self.states or not self.states[key].valid)}
+        local = self.availability.unread_metadata({key for key in unresolved if "::" not in key})
+        for key in sorted(unresolved):
+            host, tid = split_thread_key(key)
+            if host == "local" and tid not in local:
+                continue
+            state = self.states.setdefault(key, ThreadState(tid, host_id=host))
+            state.metadata.update(local.get(tid, {}))
+            self.unread_candidates.add(key)
+            if state.owner is None and key not in self.pending_discovery:
+                # Optional enrichment must not hold the adapter in syncing.
+                pending = self.recovery.pending.get(key)
+                if pending and key not in self.registry.entries:
+                    pending.required = False
+        # Read grouping metadata only for eligible unread candidates; it
+        # cannot introduce an ID, attest host liveness, or change task phase.
+        catalog_keys = {key for key in allowed
+                        if key in self.states and self.states[key].host_id in hosts
+                        and self.states[key].host_id != "local"
+                        and not self.states[key].metadata.get("cwd")
+                        and self.states[key].metadata.get("workspaceKind") != "projectless"}
+        remote_cwds = self.remote_catalog.poll(catalog_keys)
+        if unresolved or remote_cwds != self.metadata.remote_cwds:
+            self.metadata.remote_cwds = remote_cwds
+            self.project_by_thread = {key: project["id"] for key, project in self.metadata.identities(self.states).items()}
+        for key in unresolved & self.unread_candidates:
+            self.expect_snapshot(key, baseline=True)
 
     def publish(self) -> None:
         projects = self.metadata.identities(self.states)
@@ -661,8 +740,13 @@ class Plugin:
                             for key in self.resume_snapshots}
         active_states = {key: state for key, state in self.states.items()
                          if key not in self.registry.hidden and not self.project_paused(key) and key not in self.resume_snapshots}
-        all_groups = self.registry.update(active_states, projects, self.connected, language=self.language.language) if self.enabled else []
-        catalog = {entry["project"]["id"]: dict(entry["project"]) for entry in self.registry.entries.values()}
+        paused_keys = {key for key, pid in self.project_by_thread.items() if pid in self.paused_projects}
+        all_groups = self.registry.update(active_states, projects, self.connected, language=self.language.language,
+                                          unread=self.unread if self.connected else None,
+                                          unread_candidates=self.unread_candidates,
+                                          suppressed=paused_keys) if self.enabled else []
+        catalog = {entry["project"]["id"]: dict(entry["project"]) for key, entry in self.registry.entries.items()
+                   if key not in paused_keys}
         catalog.update({group["id"]: {k:v for k,v in group.items() if k != "threads"} for group in all_groups})
         for pid, descriptor in self.paused_projects.items():
             catalog.setdefault(pid, descriptor)
@@ -708,7 +792,7 @@ class Plugin:
                   "health": health,
                   "uiLanguage": self.language.language, "languageSetting": self.language.metadata(),
                   "notificationStates": sorted(self.notification_states), "compactMenuBar": self.compact_menu_bar, "statusEmoji": self.status_emoji,
-                  "projects": groups, "projectControls": controls, "enabled": self.enabled, "adapter": "desktop-ipc-v11", "pluginVersion": VERSION,
+                  "projects": groups, "projectControls": controls, "enabled": self.enabled, "adapter": "desktop-ipc-v11-v13", "pluginVersion": VERSION,
                   "menuBarReady": self.ui_ready,
                   "notifications": {"enabled": self.enabled and bool(self.notification_states), "emitted": self.notice_emitted, **self.notice_receipts}}
         if self.ui_error:
@@ -813,6 +897,8 @@ class Plugin:
             # This path is reachable only from the native user's click, not MCP.
             self.open_chat_url(url)
         elif event == "seen" and tid in self.states:
+            if self.states[tid].valid and self.states[tid].phase() in ("completed", "failed", "stopped"):
+                self.unread.dismiss(tid)
             self.registry.mark_seen(self.states[tid])
         elif event == "reconnect":
             self.disconnect("正在重新连接")
@@ -836,7 +922,8 @@ class Plugin:
         # Explicit master-on and an enabled payload startup revalidate only our
         # retained active IDs. This stage also covers the IPC handshake itself.
         deadline = time.monotonic() + RESUME_SNAPSHOT_WAIT
-        self.resume_snapshots = {key: deadline for key in self.registry.entries if not self.project_paused(key)}
+        self.resume_snapshots = {key: deadline for key, entry in self.registry.entries.items()
+                                 if entry["phase"] != "unread" and not self.project_paused(key)}
         self.resume_connecting = bool(self.resume_snapshots)
 
     def save_preferences(self):
@@ -885,7 +972,8 @@ class Plugin:
             self.resume_snapshots.pop(key, None)
             if enabled:
                 state.valid = False  # A fresh snapshot, not old paused state.
-                if self.enabled and (self.connected or self.resume_connecting):
+                if (self.enabled and (self.connected or self.resume_connecting)
+                        and self.registry.entries.get(key, {}).get("phase") != "unread"):
                     self.resume_snapshots[key] = time.monotonic() + RESUME_SNAPSHOT_WAIT
             if self.enabled and self.ipc:
                 try:
@@ -895,6 +983,8 @@ class Plugin:
                         self.ipc.follow(state.id, False, host_id=state.host_id)
                 except (OSError, ConnectionError):
                     self.disconnect("状态接口暂不可用，正在重连")
+        if enabled:
+            self.sync_desktop_unread()
         self.retry_snapshots()
         if not enabled:
             if self.pending_notice and self.pending_notice["project"]["id"] == pid:
@@ -1057,6 +1147,7 @@ class Plugin:
                         if self.enabled:
                             _, read_changed = self.metadata.poll()
                             self.refresh_pending |= read_changed
+                            self.sync_desktop_unread()
                             self.reconcile_availability()
                         poll_at = now + 0.5
                     if self.enabled and self.refresh_pending and now >= self.refresh_at:

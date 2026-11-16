@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 import pathlib
+import re
 import socket
 import select
 import struct
@@ -17,7 +18,7 @@ else:
 
 
 class DesktopIPC:
-    STREAM_VERSION = 11
+    STREAM_VERSIONS = (11, 13)
     READ_VERSION = 3
     ARCHIVE_VERSION = 2
     UNARCHIVE_VERSION = 1
@@ -130,38 +131,97 @@ class DesktopIPC:
 class DesktopMetadata:
     """Read only project identity and read-state metadata, never credentials."""
 
-    PROJECT_KEYS = ("local-projects", "remote-projects", "thread-project-assignments", "project-appearances")
+    PROJECT_KEYS = ("local-projects", "remote-projects", "thread-project-assignments", "project-appearances",
+                    "projectless-thread-ids")
+    READ_STORE = "electron-thread-read-state-v1"
 
     def __init__(self, path: pathlib.Path):
         self.path, self.signature = path, None
         self.projects, self.assignments, self.appearances = {}, {}, {}
         self.remote_projects = []
+        self.projectless = []
+        self.remote_cwds = {}
         self.read_state: dict = {}
         self.error: str | None = None
+
+    def unread_scopes(self) -> dict:
+        """Known v1 format: one identity, one unambiguous bucket per host.
+
+        The opaque suffix identifies a host configuration, not a thread. Never
+        union different accounts or two configurations sharing a host alias.
+        """
+        store = self.read_state.get(self.READ_STORE)
+        if not isinstance(store, dict) or type(store.get("version")) is not int or store["version"] != 1:
+            return {}
+        accounts = store.get("unreadByIdentity")
+        if not isinstance(accounts, dict) or len(accounts) != 1:
+            return {}
+        identity, buckets = next(iter(accounts.items()))
+        if not isinstance(buckets, dict) or not re.fullmatch(r"[0-9a-f]{64}", identity):
+            return {}
+        scopes = {}
+        seen = set()
+        for scope, ids in buckets.items():
+            host, separator, generation = scope.rpartition(":")
+            if not separator or not host or not re.fullmatch(r"[0-9a-f]{64}", generation):
+                continue
+            if host in seen:
+                scopes.pop(host, None)
+                continue
+            seen.add(host)
+            if isinstance(ids, list) and all(isinstance(tid, str) for tid in ids):
+                scopes[host] = ((identity, scope), frozenset(ids))
+        return scopes
 
     def poll(self) -> tuple[bool, bool]:
         try:
             stat = self.path.stat()
-            signature = (stat.st_mtime_ns, stat.st_size)
+            signature = (stat.st_ino, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size)
             if signature == self.signature:
                 return False, False
             raw = json.loads(self.path.read_text())
-            project_values = [raw.get(k, [] if k == "remote-projects" else {}) for k in self.PROJECT_KEYS]
-            # These are local UI read-state keys. Values stay in memory; identity
-            # context keys are not interpreted, copied to evidence, or logged.
+            if not isinstance(raw, dict):
+                raise ValueError("Invalid desktop state")
+            default = ({}, [], {}, {}, [])
+            project_values = [raw.get(k, empty) for k, empty in zip(self.PROJECT_KEYS, default)]
+            project_values = [value if type(value) is type(empty) else empty
+                              for value, empty in zip(project_values, default)]
+            # Keep read-state metadata in memory only. Other revisions remain
+            # change signals for stream refresh, not sources of chat admission.
             reads = {k: v for k, v in raw.items() if "thread-read-state" in k}
-            legacy = raw.get("electron-persisted-atom-state", {}).get("unread-thread-ids-by-host-v1")
+            legacy_state = raw.get("electron-persisted-atom-state")
+            legacy = legacy_state.get("unread-thread-ids-by-host-v1") if isinstance(legacy_state, dict) else None
             if legacy is not None:
                 reads["legacy-read-state"] = legacy
-            project_changed = project_values != [self.projects, self.remote_projects, self.assignments, self.appearances]
+            project_changed = project_values != [self.projects, self.remote_projects, self.assignments, self.appearances, self.projectless]
             read_changed = self.signature is not None and reads != self.read_state
-            self.projects, self.remote_projects, self.assignments, self.appearances = project_values
+            self.projects, self.remote_projects, self.assignments, self.appearances, self.projectless = project_values
             self.read_state = copy.deepcopy(reads)
             self.signature, self.error = signature, None
             return project_changed, read_changed
         except (OSError, ValueError, TypeError):
             self.error = "无法读取项目/已读元数据"
             return False, False
+
+    @staticmethod
+    def remote_root(projects, cwd):
+        if not isinstance(cwd, str):
+            return None
+        cwd = pathlib.PurePosixPath(cwd)
+        if not cwd.is_absolute() or ".." in cwd.parts:
+            return None
+        matches = []
+        for project in projects:
+            root = project.get("remotePath")
+            if isinstance(root, str):
+                root = pathlib.PurePosixPath(root)
+                if root.is_absolute() and ".." not in root.parts and cwd.is_relative_to(root):
+                    matches.append((len(root.parts), project))
+        if not matches:
+            return None
+        depth = max(depth for depth, _ in matches)
+        deepest = [project for size, project in matches if size == depth]
+        return deepest[0] if len(deepest) == 1 else None
 
     def identities(self, thread_ids) -> dict:
         result = {}
@@ -177,22 +237,18 @@ class DesktopMetadata:
                 name = project.get("name")
             else:
                 candidates = [p for p in self.remote_projects if isinstance(p, dict) and p.get("hostId") == host_id]
-                assigned = assignment.get("projectId") if isinstance(assignment, dict) and assignment.get("projectKind") == "remote" else None
+                meta = state.metadata if state is not None else {}
+                assigned = (assignment.get("projectId")
+                            if isinstance(assignment, dict) and assignment.get("projectKind") == "remote"
+                            and assignment.get("hostId", host_id) == host_id else None)
                 project = next((p for p in candidates if p.get("id") == assigned), None) if assigned else None
-                if project is None and state is not None and state.metadata.get("workspaceKind") == "project":
-                    cwd = state.metadata.get("cwd")
-                    # Match an actual registered remote root, not its basename.
-                    # Host identity is part of the match; longest parent wins.
-                    matches = []
-                    if isinstance(cwd, str):
-                        cwd = str(pathlib.PurePosixPath(cwd))
-                        for p in candidates:
-                            path = p.get("remotePath")
-                            if isinstance(path, str):
-                                path = str(pathlib.PurePosixPath(path)).rstrip("/") or "/"
-                                if cwd == path or cwd.startswith(path.rstrip("/") + "/"):
-                                    matches.append((len(path), p))
-                    project = max(matches, key=lambda x: x[0])[1] if matches else None
+                if project is None and tid not in self.projectless and meta.get("workspaceKind") != "projectless":
+                    pid = meta.get("projectId")
+                    project = next((p for p in candidates if p.get("id") == pid), None) if pid else None
+                    if project is None:
+                        # The stream wins over the catalog. For a cold unread
+                        # chat, the desktop's indexed cwd can stand in for it.
+                        project = self.remote_root(candidates, meta.get("cwd") or self.remote_cwds.get(key))
                 if project is None:
                     continue
                 pid, name = project.get("id"), project.get("label")

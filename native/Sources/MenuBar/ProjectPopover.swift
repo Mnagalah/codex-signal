@@ -239,6 +239,10 @@ final class ProjectPanelView: NSView {
     private var routeScroll: [Bool:CGPoint] = [:]
     var notificationStates = Set(Layout.specification.alertTypes)
     var compactMenuBar = false
+    var hiddenProjectItems: Set<String> = []
+    private func detailedChats(in project: Project) -> [Chat] {
+        compactMenuBar || hiddenProjectItems.contains(project.id) ? project.threads : []
+    }
     var statusEmoji = EmojiPickerButton.defaultEmoji
     var isChoosingEmoji: Bool { settingsDocument?.emojiButton.choosing ?? false }
     let settingsButton: PanelActionButton
@@ -264,7 +268,7 @@ final class ProjectPanelView: NSView {
         for (i,p) in projectControls.enumerated() {
             if i > 0 { y += Layout.value("group-gap") }
             frames["project:"+p.id] = CGRect(x:0,y:y,width:width,height:Layout.value("project-control-h")); y += Layout.value("project-control-h")
-            for chat in compactMenuBar ? p.threads : [] {
+            for chat in detailedChats(in: p) {
                 frames["chat:"+chat.id] = CGRect(x:0,y:y,width:width,height:PopupLayout.rowHeight); y += PopupLayout.rowHeight
             }
         }
@@ -444,7 +448,7 @@ final class ProjectPanelView: NSView {
                 controlRows[value.id]=row;document.addSubview(row);positions["project:"+value.id]=frames["project:"+value.id];alphas["project:"+value.id]=animated ? 0 : 1
             }
             controlRows[value.id]?.isHidden = showingAlerts
-            for chat in compactMenuBar ? value.threads : [] {
+            for chat in detailedChats(in: value) {
                 let key="chat:"+chat.id
                 if let row=groupedRows[chat.id] { row.update(chat,animated:animated,language:language) }
                 else {
@@ -491,7 +495,7 @@ final class ProjectPanelView: NSView {
 
     private func setBodyInteractive(_ value: Bool) {
         bodyInteractive=value;document.acceptsInput=value
-        let liveProjects=Set(projectControls.map(\.id)),liveChats=Set(compactMenuBar ? projectControls.flatMap { $0.threads.map(\.id) } : [])
+        let liveProjects=Set(projectControls.map(\.id)),liveChats=Set(projectControls.flatMap { detailedChats(in: $0).map(\.id) })
         for (id,row) in controlRows { let active=liveProjects.contains(id);row.toggle.isEnabled=value && !showingAlerts && active;row.setAccessibilityHidden(showingAlerts || !active) }
         for (id,row) in groupedRows { let active=liveChats.contains(id);row.openButton.isEnabled=value && !showingAlerts && active;row.seenButton.isEnabled=value && !showingAlerts && active;row.setAccessibilityHidden(showingAlerts || !active) }
         settingsDocument?.setBodyEnabled(value && showingAlerts)
@@ -744,6 +748,7 @@ final class ProjectPopover: NSObject, NSWindowDelegate {
             content.availableWidth = screen.visibleFrame.width - Layout.value("safe-gap") * 2
         }
         content.notificationStates=view.notificationStates;content.compactMenuBar=view.compactMenuBar;content.statusEmoji=view.statusEmoji
+        content.hiddenProjectItems = view.hiddenProjectItems
         content.setProjectControls(view.projectControls)
         content.setMonitorEnabled(view.monitorEnabled)
         content.update(view.project, detail: view.connectionDetail, animated: animated, language: view.language)

@@ -9,6 +9,7 @@ final class MenuController {
     var latestState:MonitorState?
     var compactPresentationOverride:Bool?
     private var captureScheduled = false
+    private var visibilityCheckScheduled = false
     var exercising = false
     var cancelMenuExercise:(()->Void)?
     let popover = ProjectPopover(onEvent: MenuController.send)
@@ -91,13 +92,16 @@ final class MenuController {
                     guard let item,abs(item.length-width)>0.01 else { return }
                     item.length=width;self?.popover.reposition()
                 }
+                view.onOcclusionChange = { [weak self] in self?.scheduleVisibilityCheck() }
                 view.onShowPopover = { [weak self] view, keyboard in
                     self?.cancelMenuExercise?()
+                    if view.project.isStatusControl { self?.updateHiddenProjectItems() }
                     self?.popover.toggle(from: view, keyboard: keyboard)
                 }
                 view.setVisible(true,animated:project.id != global.id)
             }
         }
+        scheduleVisibilityCheck()
         Self.send("ready", nil)
         if !captureScheduled, !state.projects.isEmpty,
            let directory = ProcessInfo.processInfo.environment["CODEX_MENU_UI_CAPTURE_DIR"] {
@@ -108,6 +112,30 @@ final class MenuController {
                 self?.captureOwnViews(in: directory)
             }
         }
+    }
+
+    private func scheduleVisibilityCheck() {
+        guard !visibilityCheckScheduled else { return }
+        visibilityCheckScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.visibilityCheckScheduled = false
+            self.updateHiddenProjectItems()
+        }
+    }
+
+    private func updateHiddenProjectItems() {
+        guard let global = views["global-control"], let state = latestState else { return }
+        // NSStatusItem.isVisible stays true when the system runs out of room.
+        // Inspect our own AppKit windows instead, never the other apps' items.
+        let hidden = !global.compactMenuBar && state.enabled != false ? Set(state.projects.compactMap { project -> String? in
+            guard let window = views[project.id]?.window,
+                  window.isVisible && window.occlusionState.contains(.visible) else { return project.id }
+            return nil
+        }) : []
+        guard global.hiddenProjectItems != hidden else { return }
+        global.hiddenProjectItems = hidden
+        popover.update(from: global)
     }
 
     func receiveNotice(_ payload: NoticePayload) {

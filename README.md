@@ -8,7 +8,7 @@ Codex Signal is a macOS menu bar plugin for Codex desktop. It groups current con
 
 - View the status of local conversations and remote conversations connected through Codex desktop.
 - Open conversations from the menu bar and choose which status changes trigger an alert.
-- Keep completion reminders and the conversation list in sync with read status, archiving, and confirmed local deletions.
+- Show and clear unread reminders as Codex read status changes, including for chats Signal has not tracked before. Keep the list in sync with archiving and confirmed local deletions.
 - Pause status updates globally or by project. The interface supports English and Simplified Chinese.
 
 ## Installation
@@ -21,7 +21,7 @@ To install through Codex, send the repository URL with this request:
 
 Codex can follow the [installation instructions](docs/INSTALL-WITH-CODEX.md) to download the prebuilt package, prepare the environment, and verify the plugin. The installer reuses a compatible Python interpreter; setup for a missing runtime is available with your approval.
 
-The current prerelease is [v0.2.9](https://github.com/Mnagalah/codex-signal/releases/tag/v0.2.9). Its native component uses ad-hoc signing. See [Compatibility](docs/COMPATIBILITY.md) for platform and signing details.
+The current prerelease is [v0.2.14](https://github.com/Mnagalah/codex-signal/releases/tag/v0.2.14). Its native component uses ad-hoc signing. See [Compatibility](docs/COMPATIBILITY.md) for platform and signing details.
 
 ## Implementation
 

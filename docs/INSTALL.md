@@ -12,7 +12,7 @@ The native component uses ad-hoc signing. See [Compatibility](COMPATIBILITY.md) 
 
 ## Install
 
-1. Download [codex-signal-v0.2.9-macos-arm64.zip](https://github.com/Mnagalah/codex-signal/releases/download/v0.2.9/codex-signal-v0.2.9-macos-arm64.zip) from the release assets.
+1. Download [codex-signal-v0.2.14-macos-arm64.zip](https://github.com/Mnagalah/codex-signal/releases/download/v0.2.14/codex-signal-v0.2.14-macos-arm64.zip) from the release assets.
 2. Extract the package and open a terminal in its directory.
 3. Run the installer:
 

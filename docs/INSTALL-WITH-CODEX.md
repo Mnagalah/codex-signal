@@ -4,7 +4,7 @@ Use this guide when asked to install https://github.com/Mnagalah/codex-signal.
 
 ## Package and environment
 
-For a fresh installation, use the [v0.2.9 macOS arm64 release ZIP](https://github.com/Mnagalah/codex-signal/releases/download/v0.2.9/codex-signal-v0.2.9-macos-arm64.zip). It includes the native menu bar component. The target is an Apple Silicon Mac running macOS 14 or later with Codex desktop.
+For a fresh installation, use the [v0.2.14 macOS arm64 release ZIP](https://github.com/Mnagalah/codex-signal/releases/download/v0.2.14/codex-signal-v0.2.14-macos-arm64.zip). It includes the native menu bar component. The target is an Apple Silicon Mac running macOS 14 or later with Codex desktop.
 
 Use the current desktop profile. For an existing Git-managed installation, update its original marketplace and use the matching checkout. The [installation guide](INSTALL.md) covers source conflicts and CLI selection.
 

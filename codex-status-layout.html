@@ -584,6 +584,7 @@
     "input",
     "running",
     "completed",
+    "unread",
     "unknown",
     "stopped"
   ],
@@ -1175,6 +1176,10 @@ html[data-keyboard="true"] :is(.panel,.badge,.slot,.switch-track,.switch-knob,.s
     "完成未看",
     "Completed · Unseen"
   ],
+  "unread": [
+    "未读",
+    "Unread"
+  ],
   "failed": [
     "运行失败",
     "Failed"
@@ -1595,7 +1600,7 @@ const iconPaths={
   power:'<path d="M12 2v10M6.4 5.4a9 9 0 1 0 11.2 0"/>'
 };
 function icon(name){if(name==='beacon'){const span=document.createElement('span');span.className='emoji-icon';span.textContent=statusEmoji;return span;}const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 24 24');svg.classList.add('symbol');svg.setAttribute('aria-hidden','true');svg.innerHTML=iconPaths[name]||iconPaths.chat;return svg;}
-const STATES={running:{color:'#2963e8',fg:'#fff'},approval:{color:'#ffab2b',fg:'#000'},input:{color:'#874ad6',fg:'#fff'},completed:{color:'#24a359',fg:'#000'},failed:{color:'#d4333d',fg:'#fff'},stopped:{color:'#9ea3ad',fg:'#000'},syncing:{color:'#9ea3ad',fg:'#000'},unknown:{color:'#9ea3ad',fg:'#000'}};
+const STATES={running:{color:'#2963e8',fg:'#fff'},approval:{color:'#ffab2b',fg:'#000'},input:{color:'#874ad6',fg:'#fff'},completed:{color:'#24a359',fg:'#000'},unread:{color:'#76c6bb',fg:'#000'},failed:{color:'#d4333d',fg:'#fff'},stopped:{color:'#9ea3ad',fg:'#000'},syncing:{color:'#9ea3ad',fg:'#000'},unknown:{color:'#9ea3ad',fg:'#000'}};
 const terminal=s=>['completed','failed','stopped'].includes(s);
 let projects=[],enabled=true,connected=true,activeId='aurora',editId='aurora',editChat='local-1',serial=4,longNames=false;
 const slots=new Map(),rows=new Map();

@@ -74,7 +74,7 @@ struct Chat: Codable, Sendable, Equatable {
     var detail: String
 
     var elapsed: String { elapsed(in: .chinese) }
-    func detailLine(in language:InterfaceLanguage) -> String { status == "syncing" ? detail : detail + " · " + elapsed(in:language) }
+    func detailLine(in language:InterfaceLanguage) -> String { status == "syncing" || status == "unread" ? detail : detail + " · " + elapsed(in:language) }
     func elapsed(in language: InterfaceLanguage) -> String {
         let seconds = max(0, Int(Date().timeIntervalSince1970 - since))
         if seconds < 60 { return language.text("seconds", ["n": String(seconds)]) }
@@ -91,6 +91,7 @@ enum Palette {
         case "approval": (1.0, 0.67, 0.17)
         case "input": (0.53, 0.29, 0.84)
         case "completed": (0.14, 0.64, 0.35)
+        case "unread": (0.46, 0.78, 0.73)
         case "failed": (0.83, 0.20, 0.24)
         default: (0.62, 0.64, 0.68)
         }

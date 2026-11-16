@@ -169,6 +169,22 @@ import Testing
     #expect(panel.preferredLayout.documentHeight == Layout.value("project-control-h")+PopupLayout.rowHeight)
 }
 
+@Test @MainActor func fullMenuShowsOnlyOverflowChatDetailsAndHidesClearedRows() {
+    var visible=controlProject("visible"), hidden=controlProject("hidden")
+    visible.threads=[Chat(id:"visible-chat",index:1,title:"Sample",since:0,canMarkSeen:false,status:"running",detail:"Running")]
+    hidden.threads=[Chat(id:"overflow-chat",index:1,title:"Sample",since:0,canMarkSeen:false,status:"unread",detail:"Unread")]
+    let global=globalControl()
+    let panel=ProjectPanelView(project:global,detail:"",onEvent:{_,_ in})
+    panel.hiddenProjectItems=["hidden"]
+    panel.setProjectControls([visible, hidden]); panel.update(global,detail:"",animated:false)
+    #expect(panel.groupedRows["overflow-chat"]?.openButton.isEnabled == true)
+    #expect(panel.groupedRows["visible-chat"] == nil)
+    hidden.threads=[]
+    panel.setProjectControls([visible, hidden]); panel.update(global,detail:"",animated:false)
+    #expect(panel.groupedRows.isEmpty)
+    #expect(!panel.compactMenuBar)
+}
+
 @Test @MainActor func emojiButtonRequiresItsOwnInputTargetAndPreservesAGraphemeChoice() {
     let field=EmojiPickerButton();var opened=0;var selected:[String]=[]
     field.openPalette={opened += 1};field.onSelect={selected.append($0)}
@@ -195,6 +211,19 @@ import Testing
     state.enabled=false;#expect(state.summaryStatus == nil)
     state.enabled=true;state.connected=true;state.projects=[];#expect(state.summaryStatus == nil)
     for phase in Layout.specification.statusPriority { state.projects=[project(phase)];#expect(state.summaryStatus == phase) }
+}
+
+@Test @MainActor func unreadBadgeUsesBilingualCopyAndDoesNotInventTimingOrCompletion() {
+    let chinese = InterfaceLanguage.chinese
+    let english = InterfaceLanguage.english
+    for (language, label) in [(chinese, "未读"), (english, "Unread")] {
+        #expect(language.text("unread") == label)
+        let chat = Chat(id:"reader-only",index:1,title:"Sample",since:0,canMarkSeen:false,status:"unread",detail:label)
+        #expect(chat.detailLine(in:language) == label)
+        #expect(!chat.canMarkSeen)
+    }
+    #expect(Palette.background("unread") != Palette.background("completed"))
+    #expect(Palette.background("unread") != Palette.background("unknown"))
 }
 
 @Test @MainActor func aggregatePillColorsAreFiniteInterruptibleAndKeepTheWholeEntryAsItsClickTarget() {

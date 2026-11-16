@@ -1,14 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.2.14
 
-- Reject delayed snapshots from disconnected owners even after a replacement takes over.
-- Recover the menu bar after launch failures or renderer exits, and prevent stalled IPC/renderer writes from blocking controls and state recovery.
-- Preserve exact-turn read intent through stream gaps, project pause and hot replacement without suppressing later turns.
-- Remove chats that become ephemeral or child conversations, including their stale alert baselines.
-- Keep enabled alerts when simultaneous updates include a disabled alert type.
-- Serialize concurrent setup attempts so they reuse one complete immutable payload.
-- Report command timeouts as unconfirmed instead of claiming a consumed request is still queued.
+- Restore live local and remote chat status on Codex desktop stream v13 while retaining v11 compatibility. Unsupported stream versions still report a compatibility issue.
+- Show and clear unread badges without manual refresh, including chats Signal has not tracked before. Keep active task status independent of read status, and show remote unread chats under their Codex project when the workspace can be matched.
+- Keep conversations accessible from the main Signal entry when macOS hides their project capsules.
+- Recover after menu bar helper exits or desktop reconnects. Ignore stale frames from disconnected owners, prevent stalled writes from blocking recovery, and remove chats that become ephemeral or child conversations.
+- Keep selected alerts when simultaneous changes include an unselected alert type.
+- Make concurrent setup attempts reuse the same complete installation and report control timeouts as unconfirmed rather than still queued.
 
 ## 0.2.9
 

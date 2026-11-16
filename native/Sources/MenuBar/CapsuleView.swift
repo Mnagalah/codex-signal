@@ -30,11 +30,13 @@ final class CapsuleView: NSView, NSViewToolTipOwner {
     let onEvent: (String, String?) -> Void
     var onShowPopover: ((CapsuleView, Bool) -> Void)?
     var onWidthChange: ((CGFloat) -> Void)?
+    var onOcclusionChange: (() -> Void)?
     var animationsEnabled = true
     var monitorEnabled = true
     var projectControls: [Project] = []
     var globalEnabled = true
     var compactMenuBar = false
+    var hiddenProjectItems: Set<String> = []
     var statusEmoji = EmojiPickerButton.defaultEmoji
     var notificationStates = Set(Layout.specification.alertTypes)
     var displayName: String { project.displayName(in: language) }
@@ -124,13 +126,18 @@ final class CapsuleView: NSView, NSViewToolTipOwner {
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         NotificationCenter.default.removeObserver(self, name: NSWindow.didChangeScreenNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSWindow.didChangeOcclusionStateNotification, object: nil)
         if let window {
+            NotificationCenter.default.addObserver(self, selector: #selector(hostOcclusionChanged(_:)),
+                                                   name: NSWindow.didChangeOcclusionStateNotification, object: window)
             NotificationCenter.default.addObserver(self, selector: #selector(hostScreenChanged(_:)),
                                                    name: NSWindow.didChangeScreenNotification, object: window)
         }
         refreshHostLayout()
+        onOcclusionChange?()
     }
 
+    @objc private func hostOcclusionChanged(_ notification: Notification) { onOcclusionChange?() }
     @objc private func hostScreenChanged(_ notification: Notification) { refreshHostLayout() }
 
     func update(_ value: Project, detail: String, language: InterfaceLanguage? = nil) {
@@ -285,7 +292,7 @@ final class CapsuleView: NSView, NSViewToolTipOwner {
         guard let id = tips[tag], let chat = project.threads.first(where: { $0.id == id }) else {
             return displayName + " · " + (project.isStatusControl ? language.text("allProjects") : project.locationLabel(in: language)) + "\n" + aggregateDetail + "\n" + language.text("openPanelHint")
         }
-        return "\(project.name) · \(chat.index) · \(project.locationLabel(in: language))\n\(chat.title)\n\(chat.detail) · \(chat.elapsed(in: language))\n\(language.text("backToChatHint"))"
+        return "\(project.name) · \(chat.index) · \(project.locationLabel(in: language))\n\(chat.title)\n\(chat.detailLine(in: language))\n\(language.text("backToChatHint"))"
     }
 
     override func mouseDown(with event: NSEvent) {

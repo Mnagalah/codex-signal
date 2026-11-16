@@ -1,4 +1,4 @@
-"""Metadata-only projection of the desktop's v11 thread stream.
+"""Metadata-only projection of supported desktop thread streams.
 
 Raw messages/transcripts are never persisted. Only the explicitly selected fields
 below survive a frame. In particular a tool item's status is not a turn status.
@@ -20,6 +20,8 @@ TURN_FIELDS = {"turnId", "id", "status", "turnStartedAtMs", "durationMs"}
 THREAD_FIELDS = {"id", "title", "workspaceKind", "projectId", "parentThreadId",
                  "ephemeral", "threadRuntimeStatus", "hasUnreadTurn", "updatedAt", "cwd", "hostId", "threadSource"}
 TERMINAL = {"completed", "failed", "interrupted"}
+ACTIVE_PHASES = {"running", "approval", "input"}
+TERMINAL_PHASES = {"completed", "failed", "stopped"}
 
 
 def thread_key(host_id: str, thread_id: str) -> str:
@@ -225,7 +227,7 @@ class WatchRegistry:
         if turn_id and self.acknowledged.get(thread.key) == turn_id:
             self.acknowledged.pop(thread.key)
 
-    def update(self, states: dict[str, ThreadState], projects: dict, connected: bool, *, language="zh-CN") -> list[dict]:
+    def update(self, states: dict[str, ThreadState], projects: dict, connected: bool, *, language="zh-CN", unread=None, unread_candidates=(), suppressed=()) -> list[dict]:
         now = time.time()
         for tid, state in states.items():
             if tid in self.hidden:
@@ -235,12 +237,28 @@ class WatchRegistry:
             if m.get("ephemeral") or m.get("parentThreadId"):
                 self.entries.pop(tid, None)
                 continue
-            turn = state.latest_turn
-            turn_id = turn.get("turnId", turn.get("id", ""))
-            is_unseen = m.get("hasUnreadTurn") is True and self.acknowledged.get(tid) != turn_id
-            should_watch = phase in ("running", "approval", "input") or (phase in ("completed", "failed", "stopped") and is_unseen)
-            if phase == "unknown" and tid in self.entries:
+            previous = self.entries.get(tid, {}).get("phase")
+            membership = unread.membership(tid) if unread is not None else None
+            if phase == "unknown" and previous == "unread" and tid not in unread_candidates and membership is not False:
+                continue  # Preserve the slot while disconnected or waiting for host replay.
+            if phase in ACTIVE_PHASES:
                 should_watch = True
+            elif membership is True and (state.valid or tid in unread_candidates):
+                if state.valid and phase in TERMINAL_PHASES and unread.take_unread_edge(tid):
+                    self.mark_unread(state)
+                turn = state.latest_turn
+                is_acknowledged = self.acknowledged.get(tid) == (turn.get("turnId") or turn.get("id") or "")
+                should_watch = not is_acknowledged or tid in unread.added
+                if phase not in TERMINAL_PHASES:
+                    phase = "unread"
+            elif phase == "unknown":
+                should_watch = previous is not None and previous != "unread"
+                if membership is False:
+                    should_watch = previous in ACTIVE_PHASES or previous == "unknown"
+            else:
+                turn_id = state.latest_turn.get("turnId", state.latest_turn.get("id", ""))
+                should_watch = (membership is None and phase in TERMINAL_PHASES and m.get("hasUnreadTurn") is True
+                                and self.acknowledged.get(tid) != turn_id)
             if not should_watch:
                 self.entries.pop(tid, None)
                 continue
@@ -258,8 +276,9 @@ class WatchRegistry:
                 number = self.next_number.get(pid, 1)
                 self.next_number[pid] = number + 1
                 old = {"id": tid, "threadId": state.id, "hostId": state.host_id,
-                       "index": number, "phase": phase, "since": now,
-                       "firstSeen": now, "project": project}
+                       "index": number, "phase": phase,
+                       "since": old["since"] if old is not None and old["phase"] == phase else now,
+                       "firstSeen": old["firstSeen"] if old is not None else now, "project": project}
                 self.entries[tid] = old
             if old["phase"] != phase:
                 old["phase"], old["since"] = phase, now
@@ -270,12 +289,14 @@ class WatchRegistry:
         self.next_number = {k: v for k, v in self.next_number.items() if k in active_projects}
         groups: dict[str, dict] = {}
         for entry in sorted(self.entries.values(), key=lambda e: e["firstSeen"]):
+            if entry["id"] in suppressed:
+                continue
             project = entry["project"]
             group = groups.setdefault(project["id"], {**project, "threads": []})
             if project.get("kind") in ("chat-bucket", "pending"):
                 group["name"] = text("chatBucket" if project["kind"] == "chat-bucket" else "pendingProject", language)
             source = states.get(entry["id"])
-            phase = entry["phase"] if connected and source is not None and source.valid else "unknown"
+            phase = entry["phase"] if connected and source is not None and (source.valid or entry["phase"] == "unread" and entry["id"] in unread_candidates) else "unknown"
             group["threads"].append({k: entry[k] for k in ("id", "title", "since")} | {
                 "index": len(group["threads"]) + 1,
                 "title": text("untitledChat", language) if source and not source.metadata.get("title") else entry["title"],

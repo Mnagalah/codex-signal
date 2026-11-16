@@ -643,6 +643,10 @@
     "状态未知",
     "Unknown"
   ],
+  "unread": [
+    "未读",
+    "Unread"
+  ],
   "untitledChat": [
     "未命名聊天",
     "Untitled chat"

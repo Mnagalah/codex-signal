@@ -6,7 +6,7 @@ Private data stays in `~/Library/Application Support/CodexMenuStatus/`: settings
 
 No analytics, external status service, API key or inference call is used. Following/unfollowing changes only Signal's observer. Signal never approves, resumes/stops tasks, sends chat messages or writes Codex read receipts. Opening a chat lets Codex apply its normal read behavior; Signal's checkmark acknowledges only its own reminder.
 
-Archive/deletion markers prevent late frames from reviving retired entries. Local index reads are scoped to already-known local IDs; the database and rollouts are never written. Missing replies are not proof of deletion.
+Archive/deletion markers prevent late frames from reviving retired entries. Signal keeps recognized unread metadata in memory and reads the local index only for observed or explicitly unread local IDs. The latter lookup uses the title, working directory and lifecycle metadata, not message bodies; the database and rollouts are never written. For already eligible unread remote chats, Signal reads only the working directory from the desktop index by exact host and chat ID to resolve an existing project. This lookup does not discover chats or determine task status. Missing replies are not proof of deletion.
 
 Public diagnostic capture is off. Never publish status/slots/recovery files, account/config data, screenshots or raw socket frames. Publish only the packager's allowlist with fictional tests and the required licenses.
 

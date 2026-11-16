@@ -2,7 +2,7 @@
 
 This is the authoritative state-machine map for Codex Signal. It covers the Python service, the native menu interface, setup, and the boundaries between them. Update the relevant transitions, invariants and regression references whenever behavior changes.
 
-The audit baseline is commit `364ab0e2716bba6749b1b083320786b213fbd90b` (after the v0.2.9 documentation updates). The fixes below are **implemented in the unreleased 0.2.10 candidate**. The published download remains v0.2.9; a distinct numeric candidate directory preserves the immutable installed v0.2.9 payload during hot replacement. They do not change the persisted record format, host/chat keys, visible numbering rule, released assets or tags.
+The audit baseline is commit `364ab0e2716bba6749b1b083320786b213fbd90b` (after the v0.2.9 documentation updates). These fixes are included in **0.2.14**. Distinct version directories preserve older installed payloads during hot replacement. The fixes do not change the persisted record format, host/chat keys, visible numbering rule, earlier release assets or tags.
 
 ## Execution and ownership
 
@@ -28,6 +28,7 @@ Source: [service](../server/main.py), [IPC](../server/desktop.py), [native entry
 | I8 | Global pause, project pause, compact presentation and alert preferences are separate controls. Presentation/alert choices do not change owner tasks or approve anything. |
 | I9 | Writes to plugin-owned IPC/renderer channels have deadlines. A partially written frame is never retried on that channel. Ordinary receive idleness is not disconnection. |
 | I10 | A setup registration result is not proof of activation. Ready requires the expected enabled version plus a fresh primary receipt, a ready native renderer and synchronized desktop health. |
+| I11 | A recognized unread membership can make a chat visible but cannot supply a task phase, duration, or alert. It is scoped to a single unambiguous desktop identity and host configuration. |
 
 ## 1. Setup and Python selection
 
@@ -125,6 +126,7 @@ Ownership: [ThreadState](../server/state.py). Freshness is the tuple `(session, 
 
 | Freshness state | Frame / guard | Result |
 | --- | --- | --- |
+| invalid / fresh | Stream version other than integer v11 or v13 | Reject before projection; flag stream protocol error; invalidate an existing source without trusting the frame |
 | invalid / fresh | Snapshot from eligible owner | Replace metadata-only projection; set owner/revision and valid |
 | fresh | Older snapshot from the same owner | Ignore its data; retain current revision |
 | fresh | Patch, same owner and exact base revision | Apply selected metadata patches and advance revision, including text-only frames whose content is discarded |
@@ -149,14 +151,19 @@ Active phases may move directly between running/approval/input; desktop snapshot
 
 ## 6. Visibility, read intent, numbering and retirement
 
-Ownership: `WatchRegistry`, `Plugin.remember_read`, `hide_thread`, `restore_thread`, [LocalThreadAvailability](../server/availability.py).
+Ownership: `WatchRegistry`, `Plugin.remember_read`, `hide_thread`, `restore_thread`, [LocalThreadAvailability](../server/availability.py), [UnreadProjection](../server/unread.py).
 
-States are `absent`, `active-visible`, `terminal-unseen`, `acknowledged`, `retained-unknown`, `excluded`, `hidden-archived`, `hidden-deleted`. Project pause freezes the saved registry rather than inventing a task phase.
+States are `absent`, `active-visible`, `terminal-unseen`, `unread-only`, `acknowledged`, `retained-unknown`, `excluded`, `hidden-archived`, `hidden-deleted`. Project pause freezes the saved registry rather than inventing a task phase.
 
 | From | Event / condition | To / effect |
 | --- | --- | --- |
 | absent / acknowledged | Fresh active phase | active-visible |
 | active-visible | Fresh terminal and unread, not acknowledged for that turn | terminal-unseen |
+| absent / acknowledged | Recognized unread membership, verified local row or connected remote host, but no reliable task phase | unread-only; no task timing, acknowledgement action or alert |
+| unread-only | Fresh supported owner snapshot arrives | Prefer a real active/terminal phase if eligible; otherwise remain unread-only |
+| terminal-unseen / unread-only | Codex clears current unread membership | Remove badge; an independently active task stays visible |
+| unread-only | Payload restarts or connection drops | Retain its historical slot while replaying; reconfirm membership and remote host, not task status |
+| unread-only | Remote host is no longer observed, or unread scope is invalid/ambiguous | Stop presenting an unread claim; never infer deletion |
 | visible | Fresh idle or read terminal | absent |
 | visible | Source becomes invalid/unknown | retained-unknown; do not infer completion |
 | any visible | Ephemeral or child metadata becomes true | excluded; remove entry, notice baseline and undelivered card |
@@ -172,27 +179,29 @@ States are `absent`, `active-visible`, `terminal-unseen`, `acknowledged`, `retai
 | hidden | Late snapshot/read/follower event | Remain hidden |
 | hidden | Explicit unarchive or confirmed active local row | Clear retirement, invalidate and refetch before display |
 
-Local deletion checks query only known local IDs. Missing remote/cloud summaries or a failed/locked database read cannot prove deletion. A missing local row requires prior persistence evidence or a legacy terminal entry. Archived context is retained for restoration; deleted task metadata is not retained.
+Local deletion checks query only known local IDs. Admission from unread membership queries the exact local ID for an active root row; it never enumerates chat history. Missing remote/cloud summaries or a failed/locked database read cannot prove deletion. A missing local row requires prior persistence evidence or a legacy terminal entry. Archived context is retained for restoration; deleted task metadata is not retained.
 
-Read intent is scoped by host and exact turn ID. It survives payload handoff in memory, but is not a new durable task snapshot. A cold crash before confirmation does not promise to retain an unconfirmed read edge; fresh desktop snapshots still determine state. An acknowledgement already saved in slots does survive restart.
+Read intent is scoped by host and exact turn ID. It survives payload handoff in memory, but is not a new durable task snapshot. A cold crash before confirmation does not promise to retain an unconfirmed read edge; fresh desktop snapshots still determine state. An acknowledgement already saved in slots does survive restart. In the recognized read store, membership overrides stale snapshot read flags. Late v3 read events can precede the persisted snapshot: keep the explicit edge until that membership is reconciled. A new membership edge rearms the matching terminal acknowledgement and is not an alert. Unread-only rows may request optional enrichment without gating task recovery.
 
 Numbering: sort retained entries by first-seen time, then emit `1…N` independently per visible project. Historical allocation fields do not become displayed ordinals. Removing/reordering visible rows never changes chat IDs. Regression: [test_read_sync.py](../tests/test_read_sync.py), [test_archive_sync.py](../tests/test_archive_sync.py), [test_remote.py](../tests/test_remote.py), `StateMachineTests` in [test_state_machines.py](../tests/test_state_machines.py).
 
 ### Project identity resolution is separate from chat visibility
 
-Ownership: `DesktopMetadata.poll`, `DesktopMetadata.identities` and `WatchRegistry.update`. States are `unresolved-project`, `chat-bucket`, `resolved-local` and `resolved-remote`.
+Ownership: `DesktopMetadata.poll`, `DesktopMetadata.identities`, `RemoteThreadCatalog` and `WatchRegistry.update`. States are `unresolved-project`, `chat-bucket`, `resolved-local` and `resolved-remote`.
 
 | From | Metadata / event | Result |
 | --- | --- | --- |
 | Unresolved | Project workspace without a usable registered descriptor/name | Per-chat pending project; do not invent a name from a directory basename |
 | Unresolved | Non-project workspace without a registered assignment | Local or host-scoped Chat bucket |
 | Any | Local assignment to a named local project | resolved-local; preserve extracted name/appearance |
-| Any | Named remote descriptor on the same host | resolved-remote; use explicit remote assignment first, otherwise longest registered parent path for project workspaces |
+| Any | Named remote descriptor on the same host | resolved-remote; use explicit remote assignment first, then supported snapshot project ID or longest unambiguous registered parent path |
+| Chat bucket / pending | Eligible unread remote chat lacks a usable stream workspace; desktop index supplies an exact host/chat row | Use that directory as an optional grouping hint. Explicit projectless state wins over a path match. |
+| Chat bucket / pending | No eligible hint, unrelated host, or ambiguous root | Do not guess a project or change the badge status. |
 | Resolved | Project rename/icon change | Update presentation without changing chat identity or manufacturing a task alert |
-| Resolved / pending | Assignment resolves or moves to another project | Regroup the same chat key; allocate the target project's historical slot and recompute its visible ordinals |
+| Resolved / pending | Assignment resolves or moves to another project | Regroup the same chat key; retain first-seen and task timing, allocate the target project's historical slot and recompute its visible ordinals; suppress the old presentation if the target is paused |
 | Any | Metadata file unavailable/malformed | Retain last successfully read context; do not infer read/deletion from absence |
 
-Only known stream identities are reconciled; opaque account/read buckets are change signals, not discovery inventories. Host-scoped project identity prevents equal local/remote IDs or root names from merging. Regression: [test_adapter.py](../tests/test_adapter.py), [test_remote.py](../tests/test_remote.py), [test_state.py](../tests/test_state.py).
+Known stream identities and explicitly unread IDs in the recognized read store are reconciled. Unknown formats remain refresh hints; do not union accounts or host configurations. Host-scoped project identity prevents equal local/remote IDs or root names from merging. Regression: [test_adapter.py](../tests/test_adapter.py), [test_remote.py](../tests/test_remote.py), [test_state.py](../tests/test_state.py).
 
 ## 7. Scope controls, handoff and aggregate entry
 
@@ -254,6 +263,8 @@ Ownership: [Controller](../native/Sources/MenuBar/Controller.swift), [CapsuleVie
 | Settings route | Settings + back / interrupted reversal | Retarget current presentation; route revision rejects stale swap/enable callbacks; preserve per-route scroll position |
 | Native motion | Running + new target | Cancel old completion and interpolate from current presentation; popover spring also retains velocity |
 | Reduced motion | Any transition | Keep appropriate fade/deadline semantics, remove spatial bounce/sliding; keyboard open/close is immediate |
+| Expanded projects | macOS completely occludes a project item, or its window is unavailable | Show that project’s live chat rows under the main entry so already-tracked badges stay reachable |
+| Overflow rows | Project item becomes visible or the chat clears | Retarget the same popover layout; remove obsolete keyboard and click targets |
 
 Transient input state also matters: a capsule badge press stores its chat ID and opens only if release still hits that ID. Status-button pointer actions are not allowed to toggle a second time on release. Notice press state additionally stores its notice ID and close/body region. Native controls check current live IDs before enabling accessibility targets.
 
@@ -362,6 +373,28 @@ Fix: report unconfirmed delivery and tell callers to check actual state before r
 
 Regression: `CommandReceiptTests.test_claimed_request_without_receipt_is_not_reported_as_safely_queued`.
 
+### SM-09 · P1 · Updated Codex stream rejected by a v11-only observer — fixed
+
+Desktop build 27194 emits thread stream v13. An installed 0.2.10 observer initialized successfully but rejected those frames, leaving the menu ready and chat state unknown. The receiver now accepts exactly v11 and v13 before metadata projection; read v3 and freshness checks are unchanged.
+
+Regression: [test_stream_versions.py](../tests/test_stream_versions.py). It exercises mixed-version local/remote sessions, same-ID host isolation, contiguous patch acceptance including dropped content, gap recovery, read v3 and metadata-triggered snapshot refresh. See the [candidate checks](RELEASE-CHECKLIST.md#prior-0211-candidate-checks) for live evidence.
+
+### SM-10 · P1 · Marking a previously untracked chat unread does not show a badge — fixed in source
+
+The desktop held unread entries for three local chats, but Signal displayed only the chat it already followed. Both missing IDs resolved to live, unarchived local rows. The read-file path only refreshed existing states. A connected remote host also held unread entries that did not return owner snapshots to read-only follows.
+
+Fix: admit explicit desktop unread membership separately from owner task state. A file or supported read event can add/remove a badge; stale task snapshots cannot revive a read badge in the recognized scope. Unknown read formats and ambiguous account/host scopes do not admit chats. Metadata-only retries never require a task snapshot for global readiness.
+
+Regression: [test_desktop_unread.py](../tests/test_desktop_unread.py) exercises never-followed chats, local/remote isolation, exact-turn rearming through reload, pause, retirement, disconnected owners, stale frames, and read events that precede persisted writes. Native tests cover bilingual labels and the absence of fabricated elapsed time.
+
+### SM-11 · P2 · A remote unread chat with a known workspace appears under Chat — fixed in source
+
+Codex desktop had an indexed workspace for seven project chats omitted by the snapshot-only resolver. The unread-only path could admit their IDs without ever learning the workspace.
+
+Fix: query the desktop index for the exact host and chat of an already eligible unread item. Pass its directory to the existing registered-project resolver without changing phase, source authority, or unread membership. Keep identity and first-seen order across a late regroup; a move into a paused project must stop displaying the old badge.
+
+Regression: [test_desktop_unread.py](../tests/test_desktop_unread.py) verifies regrouping when the index catches up, longest same-host root, phase retention, read clearance, retired rows, and projectless/fresh stream precedence.
+
 ## Verification and maintenance
 
 The audit used fictional IDs and private temporary profiles. Baseline failures were reproduced against an exported copy of the baseline commit, not by modifying the installed plugin or real chat state. Regression definitions live in the repository; they are the durable reproduction evidence, rather than private machine logs.
@@ -382,6 +415,6 @@ The unreleased 0.2.10 candidate was installed under the existing plugin identity
 
 The before/after comparison retained chat identities, historical slots, first-seen values, acknowledgements, retirement markers, settings and the pinned interpreter. Actual menu capsules and the global popover were inspected; native host attachment and slot dimensions matched. A single termination of Signal's own renderer recovered automatically in about 1.4 seconds while the backend and desktop host processes remained unchanged, with records and settings preserved. No owner task or chat was stopped or modified.
 
-This is existing-device acceptance of hot replacement and renderer recovery, not a fresh-install or Codex quit/reopen test. No tag, Release or release asset was created or changed. Public publication remains on hold.
+This is existing-device acceptance of hot replacement and renderer recovery, not a fresh-install or Codex quit/reopen test. No tag, Release or release asset was created or changed. That validation did not publish the candidate.
 
-For a state-machine change, update this file in the same change: name its owner and stored/derived state, adjust the transition/priority table, explain any changed invariant, and add the shortest regression reaching the faulty interleaving. Keep issue status at the level demonstrated: source fixed, automated checks passed, installed-device acceptance, and released are different milestones. The candidate uses internal version 0.2.10; public release remains on hold pending explicit authorization and the remaining device checks; do not replace the published v0.2.9 payload in place.
+For a state-machine change, update this file in the same change: name its owner and stored/derived state, adjust the transition/priority table, explain any changed invariant, and add the shortest regression reaching the faulty interleaving. Keep issue status at the level demonstrated: source fixed, automated checks passed, installed-device acceptance, and released are different milestones. Public release remains separate from a local candidate rollout; do not replace a published payload in place.

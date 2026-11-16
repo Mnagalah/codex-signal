@@ -8,7 +8,7 @@ Codex Signal 是面向 Codex 桌面端的 macOS 菜单栏插件，按项目汇�
 
 - 集中查看本地对话及 Codex 桌面端已连接的远程对话状态。
 - 从菜单栏打开对应对话，并选择需要提醒的状态变化。
-- 根据阅读、归档及已确认的本地删除同步完成提醒和对话列表。
+- 跟随 Codex 显示和清除未读提醒，包括此前未跟踪的对话；同步归档状态和已确认的本地删除。
 - 支持全局或按项目暂停状态更新，提供简体中文和英文界面。
 
 ## 安装
@@ -21,7 +21,7 @@ Codex Signal 是面向 Codex 桌面端的 macOS 菜单栏插件，按项目汇�
 
 Codex 可按[安装指引](docs/INSTALL-WITH-CODEX.md)完成下载、环境准备与插件校验。安装程序会复用可用的 Python 解释器；缺少运行环境时，经你确认后协助配置。
 
-当前预发布版本为 [v0.2.9](https://github.com/Mnagalah/codex-signal/releases/tag/v0.2.9)，原生组件采用 ad-hoc 签名。平台与签名情况见[兼容性说明](docs/COMPATIBILITY.md)。
+当前预发布版本为 [v0.2.14](https://github.com/Mnagalah/codex-signal/releases/tag/v0.2.14)，原生组件采用 ad-hoc 签名。平台与签名情况见[兼容性说明](docs/COMPATIBILITY.md)。
 
 ## 技术实现
 
